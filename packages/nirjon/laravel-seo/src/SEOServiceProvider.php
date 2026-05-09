@@ -4,7 +4,9 @@ namespace Nirjon\LaravelSeo;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Nirjon\LaravelSeo\View\Components\SeoTags;
+use Nirjon\LaravelSeo\Http\Controllers\SitemapController;
 
 class SEOServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,8 @@ class SEOServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'seo');
 
         Blade::component('seo::tags', SeoTags::class);
+
+        Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
