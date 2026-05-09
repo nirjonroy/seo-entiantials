@@ -35,4 +35,20 @@ return [
         'copyright'       => '',
         'default_image'   => '', // Provide a URL or asset path to a default Open Graph image
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sitemap Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for generating XML and HTML sitemaps.
+    |
+    */
+    'sitemap' => [
+        'enable_xml' => true,
+        'enable_html' => true,
+        'exclude_urls' => ['/admin/*', '/login', '/register'],
+        'change_frequency' => 'weekly',
+        'default_priority' => '0.8',
+    ],
 ];
