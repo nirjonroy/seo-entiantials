@@ -29,7 +29,7 @@ class SEOServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'seo');
 
-        Blade::component('seo-tags', SeoTags::class);
+        Blade::component('seo::tags', SeoTags::class);
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
