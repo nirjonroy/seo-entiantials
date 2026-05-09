@@ -57,6 +57,45 @@ class SEOMetaService
         // Canonical link tag
         $tags[] = '<link rel="canonical" href="' . e($canonical) . '">';
 
+        // Open Graph tags
+        $tags[] = '<meta property="og:type" content="website">';
+        
+        if (!empty($title)) {
+            $tags[] = '<meta property="og:title" content="' . e($title) . '">';
+        }
+        
+        if (!empty($canonical)) {
+            $tags[] = '<meta property="og:url" content="' . e($canonical) . '">';
+        }
+
+        if (!empty($siteName)) {
+            $tags[] = '<meta property="og:site_name" content="' . e($siteName) . '">';
+        }
+        
+        if (!empty($description)) {
+            $tags[] = '<meta property="og:description" content="' . e($description) . '">';
+        }
+
+        $image = $seo->image ?? '';
+        if (!empty($image)) {
+            $tags[] = '<meta property="og:image" content="' . e($image) . '">';
+        }
+
+        // Twitter Card tags
+        $tags[] = '<meta name="twitter:card" content="summary_large_image">';
+        
+        if (!empty($title)) {
+            $tags[] = '<meta name="twitter:title" content="' . e($title) . '">';
+        }
+
+        if (!empty($description)) {
+            $tags[] = '<meta name="twitter:description" content="' . e($description) . '">';
+        }
+
+        if (!empty($image)) {
+            $tags[] = '<meta name="twitter:image" content="' . e($image) . '">';
+        }
+
         return $tags;
     }
 }
