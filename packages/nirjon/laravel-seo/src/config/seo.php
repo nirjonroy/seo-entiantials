@@ -50,5 +50,9 @@ return [
         'exclude_urls' => ['/admin/*', '/login', '/register'],
         'change_frequency' => 'weekly',
         'default_priority' => '0.8',
+        
+        // Add your Eloquent model classes here (e.g., \App\Models\Product::class, \App\Models\Service::class)
+        // to automatically include them in the sitemap.
+        'models' => [],
     ],
 ];

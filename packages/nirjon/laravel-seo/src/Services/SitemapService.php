@@ -24,7 +24,23 @@ class SitemapService
         $xml .= "        <priority>" . htmlspecialchars($defaultPriority) . "</priority>\n";
         $xml .= "    </url>\n";
 
-        // TODO: Loop through Eloquent models and other static URLs later
+        // Loop through Eloquent models
+        $models = config('seo.sitemap.models', []);
+        foreach ($models as $modelClass) {
+            if (class_exists($modelClass)) {
+                $records = $modelClass::all();
+                foreach ($records as $record) {
+                    if (method_exists($record, 'getSitemapUrl')) {
+                        $url = $record->getSitemapUrl();
+                        $xml .= "    <url>\n";
+                        $xml .= "        <loc>" . htmlspecialchars($url) . "</loc>\n";
+                        $xml .= "        <changefreq>weekly</changefreq>\n";
+                        $xml .= "        <priority>0.6</priority>\n";
+                        $xml .= "    </url>\n";
+                    }
+                }
+            }
+        }
 
         $xml .= '</urlset>';
 
