@@ -30,6 +30,7 @@ class SEOServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'seo');
 
         Blade::component('seo::tags', SeoTags::class);
@@ -38,6 +39,10 @@ class SEOServiceProvider extends ServiceProvider
         Route::get('/robots.txt', [SeoFilesController::class, 'robots']);
         Route::get('/llms.txt', [SeoFilesController::class, 'llms']);
         Route::get('/.well-known/security.txt', [SeoFilesController::class, 'security']);
+
+        // Register the SEO Redirect Middleware
+        $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
+            ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\SeoRedirectMiddleware::class);
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
