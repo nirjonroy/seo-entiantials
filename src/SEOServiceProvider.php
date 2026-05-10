@@ -44,6 +44,10 @@ class SEOServiceProvider extends ServiceProvider
         $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
             ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\SeoRedirectMiddleware::class);
 
+        // Register the SEO 404 Monitor Middleware
+        $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
+            ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\Seo404MonitorMiddleware::class);
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/config/seo.php' => config_path('seo.php'),
