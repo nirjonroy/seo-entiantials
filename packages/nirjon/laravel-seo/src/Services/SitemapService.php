@@ -46,4 +46,36 @@ class SitemapService
 
         return $xml;
     }
+
+    /**
+     * Generate the HTML sitemap string.
+     *
+     * @return string
+     */
+    public function generateHtml(): string
+    {
+        $html = '<ul class="seo-html-sitemap">' . "\n";
+        $html .= '    <li><a href="' . url('/') . '">Home</a></li>' . "\n";
+
+        // Loop through Eloquent models
+        $models = config('seo.sitemap.models', []);
+        foreach ($models as $modelClass) {
+            if (class_exists($modelClass)) {
+                $records = $modelClass::all();
+                foreach ($records as $record) {
+                    if (method_exists($record, 'getSitemapUrl')) {
+                        $title = $record->title ?? $record->name ?? null;
+                        if ($title) {
+                            $url = $record->getSitemapUrl();
+                            $html .= '    <li><a href="' . htmlspecialchars($url) . '">' . htmlspecialchars($title) . '</a></li>' . "\n";
+                        }
+                    }
+                }
+            }
+        }
+
+        $html .= '</ul>';
+
+        return $html;
+    }
 }

@@ -44,5 +44,8 @@ class SEOServiceProvider extends ServiceProvider
                 __DIR__.'/../resources/views' => resource_path('views/vendor/seo'),
             ], 'seo-views');
         }
+        Blade::directive('htmlSitemap', function () {
+        return "<?php echo app(\Nirjon\LaravelSeo\Services\SitemapService::class)->generateHtml(); ?>";
+    });
     }
 }
