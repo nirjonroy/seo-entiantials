@@ -17,6 +17,7 @@ return [
         'schema'       => true,
         'local_seo'    => true,
         'image_seo'    => true,
+        'minify_html'  => true,
     ],
 
     /*
