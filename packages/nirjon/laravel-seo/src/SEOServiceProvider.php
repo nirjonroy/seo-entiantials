@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Nirjon\LaravelSeo\View\Components\SeoTags;
 use Nirjon\LaravelSeo\Http\Controllers\SitemapController;
+use Nirjon\LaravelSeo\Http\Controllers\SeoFilesController;
 
 class SEOServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,9 @@ class SEOServiceProvider extends ServiceProvider
         Blade::component('seo::tags', SeoTags::class);
 
         Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+        Route::get('/robots.txt', [SeoFilesController::class, 'robots']);
+        Route::get('/llms.txt', [SeoFilesController::class, 'llms']);
+        Route::get('/.well-known/security.txt', [SeoFilesController::class, 'security']);
 
         if ($this->app->runningInConsole()) {
             $this->publishes([

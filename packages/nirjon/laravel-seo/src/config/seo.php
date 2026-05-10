@@ -57,4 +57,18 @@ return [
         \App\Models\TestProduct::class, // 
     ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Static SEO Files
+    |--------------------------------------------------------------------------
+    |
+    | Content defaults for generated text files.
+    |
+    */
+    'files' => [
+        'robots_txt' => "User-agent: *\nAllow: /\nSitemap: " . env('APP_URL') . "/sitemap.xml",
+        'llms_txt' => "Title: My Awesome Site\nDescription: Data for LLMs and AI crawlers.\n",
+        'security_txt' => "Contact: mailto:admin@example.com\nExpires: 2027-01-01T00:00:00.000Z\n",
+    ],
 ];
