@@ -71,4 +71,29 @@ return [
         'llms_txt' => "Title: My Awesome Site\nDescription: Data for LLMs and AI crawlers.\n",
         'security_txt' => "Contact: mailto:admin@example.com\nExpires: 2027-01-01T00:00:00.000Z\n",
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Local Business Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for Local Business Schema.
+    |
+    */
+    'local_business' => [
+        'name' => 'Placeholder Business Name',
+        'image' => 'https://example.com/image.jpg',
+        'telephone' => '+1-555-555-5555',
+        'priceRange' => '$$',
+        'address' => [
+            'streetAddress' => '123 Main St',
+            'addressLocality' => 'Anytown',
+            'postalCode' => '12345',
+            'addressCountry' => 'US',
+        ],
+        'geo' => [
+            'latitude' => '40.7128',
+            'longitude' => '-74.0060',
+        ],
+    ],
 ];
