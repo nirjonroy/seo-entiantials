@@ -52,6 +52,10 @@ class SEOServiceProvider extends ServiceProvider
         $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
             ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\AutoImageSeoMiddleware::class);
 
+        // Register the HTML Minifier Middleware
+        $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
+            ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\HtmlMinifierMiddleware::class);
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/config/seo.php' => config_path('seo.php'),
