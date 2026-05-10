@@ -57,6 +57,10 @@ class SEOServiceProvider extends ServiceProvider
             ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\HtmlMinifierMiddleware::class);
 
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Nirjon\LaravelSeo\Console\Commands\InstallCommand::class,
+            ]);
+
             $this->publishes([
                 __DIR__.'/config/seo.php' => config_path('seo.php'),
             ], 'seo-config');
