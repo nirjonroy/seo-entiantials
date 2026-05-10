@@ -16,6 +16,7 @@ return [
         'redirections' => true,
         'schema'       => true,
         'local_seo'    => true,
+        'image_seo'    => true,
     ],
 
     /*

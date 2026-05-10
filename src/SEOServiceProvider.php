@@ -48,6 +48,10 @@ class SEOServiceProvider extends ServiceProvider
         $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
             ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\Seo404MonitorMiddleware::class);
 
+        // Register the Auto Image SEO Middleware
+        $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
+            ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\AutoImageSeoMiddleware::class);
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/config/seo.php' => config_path('seo.php'),
