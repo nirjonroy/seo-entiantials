@@ -15,6 +15,13 @@ class SeoTags extends Component
     public $tags;
 
     /**
+     * The generated schema JSON tags.
+     *
+     * @var string
+     */
+    public $schemas;
+
+    /**
      * Create a new component instance.
      *
      * @param mixed $model
@@ -23,6 +30,9 @@ class SeoTags extends Component
     public function __construct($model = null, SEOMetaService $seoService)
     {
         $this->tags = $seoService->generateTags($model);
+        
+        $schemaService = new \Nirjon\LaravelSeo\Services\SchemaService();
+        $this->schemas = $schemaService->generateGlobalSchemas();
     }
 
     /**
