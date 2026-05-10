@@ -53,6 +53,8 @@ return [
         
         // Add your Eloquent model classes here (e.g., \App\Models\Product::class, \App\Models\Service::class)
         // to automatically include them in the sitemap.
-        'models' => [],
+        'models' => [
+        \App\Models\TestProduct::class, // <-- এই লাইনটি যোগ করুন
+    ],
     ],
 ];
