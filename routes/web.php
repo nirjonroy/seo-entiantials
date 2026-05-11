@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use Nirjon\LaravelSeo\Services\BreadcrumbService;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
+Route::get('/', function (BreadcrumbService $breadcrumbs) {
+    
+    $breadcrumbs->add('Products', url('/products'))
+                ->add('Laptop', url('/products/laptop'))
+                ->add('MacBook Pro');
+
     return view('welcome');
 });

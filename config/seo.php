@@ -113,4 +113,52 @@ return [
         'default_title' => '{title} {sep} {site_name}',
         'default_description' => 'Read more about {title} on {site_name}.',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Site Verifications
+    |--------------------------------------------------------------------------
+    */
+    'verifications' => [
+        'google'    => env('SEO_GOOGLE_VERIFICATION', ''),
+        'bing'      => env('SEO_BING_VERIFICATION', ''),
+        'yandex'    => '',
+        'pinterest' => '',
+        'baidu'     => '',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Organization
+    |--------------------------------------------------------------------------
+    */
+    'organization' => [
+        'name'            => env('APP_NAME', 'Laravel'),
+        'url'             => env('APP_URL', 'http://localhost'),
+        'logo'            => '',
+        'social_profiles' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Scripts
+    |--------------------------------------------------------------------------
+    */
+    'scripts' => [
+        'head'       => '',
+        'body_start' => '',
+        'footer'     => '',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Breadcrumbs
+    |--------------------------------------------------------------------------
+    */
+    'breadcrumbs' => [
+        'enabled'         => true,
+        'separator'       => '»',
+        'home_label'      => 'Home',
+        'generate_schema' => true,
+    ],
 ];

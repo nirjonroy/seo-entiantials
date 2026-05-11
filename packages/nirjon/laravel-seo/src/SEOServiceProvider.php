@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Nirjon\LaravelSeo\View\Components\SeoTags;
+use Nirjon\LaravelSeo\View\Components\Breadcrumbs;
 use Nirjon\LaravelSeo\Http\Controllers\SitemapController;
 use Nirjon\LaravelSeo\Http\Controllers\SeoFilesController;
 
@@ -21,6 +22,8 @@ class SEOServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/config/seo.php', 'seo'
         );
+
+        $this->app->singleton(\Nirjon\LaravelSeo\Services\BreadcrumbService::class);
     }
 
     /**
@@ -34,6 +37,7 @@ class SEOServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'seo');
 
         Blade::component('seo::tags', SeoTags::class);
+        Blade::component('seo::breadcrumbs', Breadcrumbs::class);
 
         Route::get('/sitemap.xml', [SitemapController::class, 'index']);
         Route::get('/robots.txt', [SeoFilesController::class, 'robots']);
