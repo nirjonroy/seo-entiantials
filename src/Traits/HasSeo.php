@@ -8,6 +8,25 @@ use Nirjon\LaravelSeo\Models\SeoData;
 trait HasSeo
 {
     /**
+     * Boot the trait to add event listeners.
+     */
+    public static function bootHasSeo()
+    {
+        static::saved(function ($model) {
+            if ($model->wasChanged('slug') && $model->getOriginal('slug')) {
+                \Nirjon\LaravelSeo\Models\SeoRedirect::create([
+                    'source_url' => $model->getOriginal('slug'),
+                    'destination_url' => $model->slug,
+                    'redirect_type' => 301,
+                    'match_type' => 'exact',
+                    'ignore_case' => 1,
+                    'is_active' => 1
+                ]);
+            }
+        });
+    }
+
+    /**
      * Get the SEO metadata associated with the model.
      */
     public function seo(): MorphOne
