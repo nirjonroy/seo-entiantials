@@ -98,4 +98,19 @@ return [
             'longitude' => '-74.0060',
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fallbacks
+    |--------------------------------------------------------------------------
+    |
+    | Fallback configurations.
+    |
+    */
+    'fallbacks' => [
+        'separator' => '-',
+        'site_name' => env('APP_NAME', 'Laravel'),
+        'default_title' => '{title} {sep} {site_name}',
+        'default_description' => 'Read more about {title} on {site_name}.',
+    ],
 ];

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Nirjon\LaravelSeo\Traits\HasSeo;
 class TestProduct extends Model
 {
     use HasFactory;

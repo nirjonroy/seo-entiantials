@@ -21,18 +21,17 @@ class SeoTags extends Component
      */
     public $schemas;
 
+    public $model;
+
     /**
      * Create a new component instance.
      *
      * @param mixed $model
      * @return void
      */
-    public function __construct($model = null, SEOMetaService $seoService)
+    public function __construct($model = null)
     {
-        $this->tags = $seoService->generateTags($model);
-        
-        $schemaService = new \Nirjon\LaravelSeo\Services\SchemaService();
-        $this->schemas = $schemaService->generateGlobalSchemas();
+        $this->model = $model;
     }
 
     /**
