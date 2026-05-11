@@ -25,15 +25,33 @@ class AutoImageSeoMiddleware
             if (is_string($html)) {
                 $modifiedHtml = preg_replace_callback('/<img\s+[^>]*>/i', function ($matches) {
                     $imgTag = $matches[0];
+                    $attributesToAdd = '';
 
-                    if (stripos($imgTag, 'alt=') === false) {
+                    $hasAlt = stripos($imgTag, 'alt=') !== false;
+                    $hasTitle = stripos($imgTag, 'title=') !== false;
+                    $hasLoading = stripos($imgTag, 'loading=') !== false;
+
+                    if (!$hasAlt || !$hasTitle) {
                         if (preg_match('/src=["\']([^"\']+)["\']/i', $imgTag, $srcMatches)) {
                             $src = $srcMatches[1];
                             $filename = pathinfo(parse_url($src, PHP_URL_PATH), PATHINFO_FILENAME);
-                            $cleanedFilename = ucwords(str_replace(['-', '_'], ' ', $filename));
+                            $cleanedFilename = htmlspecialchars(ucwords(str_replace(['-', '_'], ' ', $filename)), ENT_QUOTES);
 
-                            return preg_replace('/<img/i', '<img alt="' . htmlspecialchars($cleanedFilename, ENT_QUOTES) . '"', $imgTag, 1);
+                            if (!$hasAlt) {
+                                $attributesToAdd .= ' alt="' . $cleanedFilename . '"';
+                            }
+                            if (!$hasTitle) {
+                                $attributesToAdd .= ' title="' . $cleanedFilename . '"';
+                            }
                         }
+                    }
+
+                    if (!$hasLoading) {
+                        $attributesToAdd .= ' loading="lazy"';
+                    }
+
+                    if (!empty($attributesToAdd)) {
+                        return preg_replace('/<img/i', '<img' . $attributesToAdd, $imgTag, 1);
                     }
 
                     return $imgTag;
