@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TestProduct extends Model
 {
     use HasFactory;
-
+    use HasSeo;
     protected $guarded = [];
 
     public function getSitemapUrl()

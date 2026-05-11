@@ -3,7 +3,7 @@
 namespace Nirjon\LaravelSeo\Traits;
 
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use Nirjon\LaravelSeo\Models\SeoMeta;
+use Nirjon\LaravelSeo\Models\SeoData;
 
 trait HasSeo
 {
@@ -12,14 +12,14 @@ trait HasSeo
      */
     public function seo(): MorphOne
     {
-        return $this->morphOne(SeoMeta::class, 'seoable');
+        return $this->morphOne(SeoData::class, 'seoable')->withDefault();
     }
 
     /**
      * Update or create the SEO metadata for the model.
      *
      * @param array $data
-     * @return \Illuminate\Database\Eloquent\Model|SeoMeta
+     * @return \Illuminate\Database\Eloquent\Model|SeoData
      */
     public function updateSeo(array $data)
     {
