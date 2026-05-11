@@ -24,3 +24,10 @@
 @endforeach
 
 {!! $schemas ?? '' !!}
+
+@if(isset($model) && method_exists($model, 'getSchema') && $model->getSchema())
+    <script type="application/ld+json">
+        {!! json_encode($model->getSchema(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+@endif
+
