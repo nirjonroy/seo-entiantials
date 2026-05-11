@@ -59,4 +59,15 @@ trait HasSeo
 
         return $parser->parse($template, $this);
     }
+
+    /**
+     * Get the SEO schema.
+     *
+     * @return array|null
+     */
+    public function getSchema()
+    {
+        $factory = app(\Nirjon\LaravelSeo\Services\SchemaFactory::class);
+        return $factory->generate($this);
+    }
 }
