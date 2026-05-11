@@ -44,6 +44,9 @@ class SEOServiceProvider extends ServiceProvider
         Route::get('/llms.txt', [SeoFilesController::class, 'llms']);
         Route::get('/.well-known/security.txt', [SeoFilesController::class, 'security']);
 
+        $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+        $kernel->prependMiddleware(\Nirjon\LaravelSeo\Http\Middleware\HandleSeoRedirects::class);
+
         // Register the SEO Redirect Middleware
         $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
             ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\SeoRedirectMiddleware::class);
