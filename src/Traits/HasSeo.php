@@ -42,4 +42,21 @@ trait HasSeo
 
         return $parser->parse($template, $this);
     }
+
+    /**
+     * Get the SEO description.
+     *
+     * @return string
+     */
+    public function getSeoDescription()
+    {
+        if ($this->seo && $this->seo->meta_description) {
+            return $this->seo->meta_description;
+        }
+
+        $template = config('seo.fallbacks.default_description');
+        $parser = app(\Nirjon\LaravelSeo\Services\SeoTemplateParser::class);
+
+        return $parser->parse($template, $this);
+    }
 }
