@@ -5,7 +5,7 @@
 
     if (isset($model) && method_exists($model, 'getSeoTitle')) {
         $title = $model->getSeoTitle();
-        $description = optional($model->seo)->meta_description ?? $description;
+        $description = (isset($model) && method_exists($model, 'getSeoDescription')) ? $model->getSeoDescription() : $description;
     }
 @endphp
 
