@@ -7,6 +7,12 @@
         $title = $model->getSeoTitle();
         $description = (isset($model) && method_exists($model, 'getSeoDescription')) ? $model->getSeoDescription() : $description;
     }
+
+    $currentPage = request()->get('page', 1);
+    $prevUrl = $currentPage > 1 ? request()->fullUrlWithQuery(['page' => $currentPage - 1]) : null;
+    $nextUrl = request()->has('page') ? request()->fullUrlWithQuery(['page' => $currentPage + 1]) : null;
+    $currentLocale = app()->getLocale();
+    $currentUrl = url()->current();
 @endphp
 
 <title>{{ $title }}</title>
@@ -18,6 +24,11 @@
 
 <meta name="twitter:title" content="{{ $title }}">
 <meta name="twitter:description" content="{{ $description }}">
+
+@if($prevUrl) <link rel="prev" href="{{ $prevUrl }}"> @endif
+@if($nextUrl) <link rel="next" href="{{ $nextUrl }}"> @endif
+<link rel="alternate" hreflang="{{ $currentLocale }}" href="{{ $currentUrl }}">
+<link rel="alternate" hreflang="x-default" href="{{ $currentUrl }}">
 
 @foreach(config('seo.meta', []) as $key => $value)
     <meta name="{{ $key }}" content="{{ $value }}">
