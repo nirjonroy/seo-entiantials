@@ -25,4 +25,21 @@ trait HasSeo
     {
         return $this->seo()->updateOrCreate([], $data);
     }
+
+    /**
+     * Get the SEO title.
+     *
+     * @return string
+     */
+    public function getSeoTitle()
+    {
+        if ($this->seo && $this->seo->meta_title) {
+            return $this->seo->meta_title;
+        }
+
+        $template = config('seo.fallbacks.default_title');
+        $parser = app(\Nirjon\LaravelSeo\Services\SeoTemplateParser::class);
+
+        return $parser->parse($template, $this);
+    }
 }
