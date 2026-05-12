@@ -1,11 +1,11 @@
 @php
     $siteName = config('seo.fallbacks.site_name', env('APP_NAME', 'Laravel'));
-    $title = config('seo.fallbacks.default_title', 'Welcome');
-    $description = config('seo.fallbacks.default_description', 'Default description');
+    $title = $title ?: config('seo.fallbacks.default_title', 'Welcome');
+    $description = $description ?: config('seo.fallbacks.default_description', 'Default description');
 
     if (isset($model) && method_exists($model, 'getSeoTitle')) {
-        $title = $model->getSeoTitle();
-        $description = (isset($model) && method_exists($model, 'getSeoDescription')) ? $model->getSeoDescription() : $description;
+        $title = $model->getSeoTitle() ?: $title;
+        $description = (isset($model) && method_exists($model, 'getSeoDescription')) ? ($model->getSeoDescription() ?: $description) : $description;
     }
 
     $currentPage = request()->get('page', 1);
@@ -18,12 +18,19 @@
 <title>{{ $title }}</title>
 <meta name="description" content="{{ $description }}">
 
-<meta property="og:title" content="{{ $title }}">
-<meta property="og:description" content="{{ $description }}">
+@if(!empty($keywords))
+<meta name="keywords" content="{{ $keywords }}">
+@endif
+
+<link rel="canonical" href="{{ $canonical ?: url()->current() }}">
+
+<meta property="og:title" content="{{ $ogTitle ?: $title }}">
+<meta property="og:description" content="{{ $ogDescription ?: $description }}">
+<meta property="og:url" content="{{ $canonical ?: url()->current() }}">
 <meta property="og:site_name" content="{{ $siteName }}">
 
-<meta name="twitter:title" content="{{ $title }}">
-<meta name="twitter:description" content="{{ $description }}">
+<meta name="twitter:title" content="{{ $ogTitle ?: $title }}">
+<meta name="twitter:description" content="{{ $ogDescription ?: $description }}">
 
 @if($prevUrl) <link rel="prev" href="{{ $prevUrl }}"> @endif
 @if($nextUrl) <link rel="next" href="{{ $nextUrl }}"> @endif

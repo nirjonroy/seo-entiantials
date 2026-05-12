@@ -69,6 +69,9 @@ class PageGenerationEngine
             $title = $template->title_structure ?? '';
             $slug = $template->slug_structure ?? '';
             $content = $template->content ?? '';
+            $metaTitle = $template->meta_title ?? '';
+            $metaDescription = $template->meta_description ?? '';
+            $metaKeywords = $template->meta_keywords ?? '';
 
             // Replace {bundle_slug} placeholders
             foreach ($combination as $bundleSlug => $keyword) {
@@ -76,7 +79,17 @@ class PageGenerationEngine
                 $title = str_replace($placeholder, $keyword, $title);
                 $slug = str_replace($placeholder, $keyword, $slug);
                 $content = str_replace($placeholder, $keyword, $content);
+                $metaTitle = str_replace($placeholder, $keyword, $metaTitle);
+                $metaDescription = str_replace($placeholder, $keyword, $metaDescription);
+                $metaKeywords = str_replace($placeholder, $keyword, $metaKeywords);
             }
+
+            $title = $this->parseSpintax($title);
+            $slug = $this->parseSpintax($slug);
+            $content = $this->parseSpintax($content);
+            $metaTitle = $this->parseSpintax($metaTitle);
+            $metaDescription = $this->parseSpintax($metaDescription);
+            $metaKeywords = $this->parseSpintax($metaKeywords);
 
             // Generate clean URL slug
             $urlSlug = Str::slug($slug);
@@ -92,6 +105,9 @@ class PageGenerationEngine
                     'template_id' => $template->id,
                     'final_title' => $title,
                     'final_content' => $content,
+                    'meta_title' => $metaTitle,
+                    'meta_description' => $metaDescription,
+                    'meta_keywords' => $metaKeywords,
                 ]
             );
 
@@ -99,5 +115,27 @@ class PageGenerationEngine
         }
 
         return $generatedCount;
+    }
+
+    /**
+     * Parses standard and nested spintax.
+     *
+     * @param string $text
+     * @return string
+     */
+    private function parseSpintax($text)
+    {
+        if (!is_string($text)) {
+            return $text;
+        }
+
+        return preg_replace_callback(
+            '/\{(((?>[^\{\}]+)|(?R))*)\}/x',
+            function ($matches) {
+                $parts = explode('|', $matches[1]);
+                return $parts[array_rand($parts)];
+            },
+            $text
+        );
     }
 }

@@ -42,6 +42,17 @@ class SitemapService
             }
         }
 
+        // Add Generated Pages
+        $generatedPages = \Nirjon\LaravelSeo\Models\SeoGeneratedPage::all();
+        foreach ($generatedPages as $page) {
+            $url = url('/' . ltrim($page->url_slug, '/'));
+            $xml .= "    <url>\n";
+            $xml .= "        <loc>" . htmlspecialchars($url) . "</loc>\n";
+            $xml .= "        <changefreq>weekly</changefreq>\n";
+            $xml .= "        <priority>0.8</priority>\n";
+            $xml .= "    </url>\n";
+        }
+
         $xml .= '</urlset>';
 
         return $xml;
