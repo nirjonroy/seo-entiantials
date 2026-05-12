@@ -21,3 +21,5 @@ Route::get('/', function (BreadcrumbService $breadcrumbs) {
 
     return view('welcome');
 });
+
+Route::get('/{slug}', [\Nirjon\LaravelSeo\Http\Controllers\GeneratedPageController::class, 'show']);
