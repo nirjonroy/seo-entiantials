@@ -72,6 +72,7 @@ class PageGenerationEngine
             $metaTitle = $template->meta_title ?? '';
             $metaDescription = $template->meta_description ?? '';
             $metaKeywords = $template->meta_keywords ?? '';
+            $featuredImage = $template->featured_image ?? '';
 
             // Replace {bundle_slug} placeholders
             foreach ($combination as $bundleSlug => $keyword) {
@@ -82,6 +83,7 @@ class PageGenerationEngine
                 $metaTitle = str_replace($placeholder, $keyword, $metaTitle);
                 $metaDescription = str_replace($placeholder, $keyword, $metaDescription);
                 $metaKeywords = str_replace($placeholder, $keyword, $metaKeywords);
+                $featuredImage = str_replace($placeholder, $keyword, $featuredImage);
             }
 
             $title = $this->parseSpintax($title);
@@ -90,6 +92,7 @@ class PageGenerationEngine
             $metaTitle = $this->parseSpintax($metaTitle);
             $metaDescription = $this->parseSpintax($metaDescription);
             $metaKeywords = $this->parseSpintax($metaKeywords);
+            $featuredImage = $this->parseSpintax($featuredImage);
 
             // Generate clean URL slug
             $urlSlug = Str::slug($slug);
@@ -108,6 +111,7 @@ class PageGenerationEngine
                     'meta_title' => $metaTitle,
                     'meta_description' => $metaDescription,
                     'meta_keywords' => $metaKeywords,
+                    'featured_image' => $featuredImage,
                 ]
             );
 

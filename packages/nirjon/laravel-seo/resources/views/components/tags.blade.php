@@ -28,6 +28,7 @@
 <meta property="og:description" content="{{ $ogDescription ?: $description }}">
 <meta property="og:url" content="{{ $canonical ?: url()->current() }}">
 <meta property="og:site_name" content="{{ $siteName }}">
+<meta property="og:image" content="{{ $image ?: config('seo.defaults.default_image') }}">
 
 <meta name="twitter:title" content="{{ $ogTitle ?: $title }}">
 <meta name="twitter:description" content="{{ $ogDescription ?: $description }}">
@@ -79,4 +80,6 @@
         {!! json_encode($model->getSchema(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
 @endif
+
+<script type="application/ld+json">{!! json_encode($pageSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
