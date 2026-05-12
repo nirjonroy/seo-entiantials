@@ -22,16 +22,34 @@ class SeoTags extends Component
     public $schemas;
 
     public $model;
+    public $title;
+    public $description;
+    public $keywords;
+    public $canonical;
+    public $ogTitle;
+    public $ogDescription;
 
     /**
      * Create a new component instance.
      *
      * @param mixed $model
+     * @param string|null $title
+     * @param string|null $description
+     * @param string|null $keywords
+     * @param string|null $canonical
+     * @param string|null $ogTitle
+     * @param string|null $ogDescription
      * @return void
      */
-    public function __construct($model = null)
+    public function __construct($model = null, $title = null, $description = null, $keywords = null, $canonical = null, $ogTitle = null, $ogDescription = null)
     {
         $this->model = $model;
+        $this->title = $title;
+        $this->description = $description;
+        $this->keywords = $keywords;
+        $this->canonical = $canonical;
+        $this->ogTitle = $ogTitle;
+        $this->ogDescription = $ogDescription;
     }
 
     /**
@@ -41,6 +59,6 @@ class SeoTags extends Component
      */
     public function render()
     {
-        return view('seo::components.tags', ['tags' => $this->tags]);
+        return view('seo::components.tags');
     }
 }
