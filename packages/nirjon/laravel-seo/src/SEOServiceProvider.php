@@ -39,6 +39,8 @@ class SEOServiceProvider extends ServiceProvider
         Blade::component('seo::tags', SeoTags::class);
         Blade::component('seo::breadcrumbs', Breadcrumbs::class);
 
+        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+
         Route::get('/sitemap.xml', [SitemapController::class, 'index']);
         Route::get('/robots.txt', [SeoFilesController::class, 'robots']);
         Route::get('/llms.txt', [SeoFilesController::class, 'llms']);
