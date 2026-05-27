@@ -42,18 +42,34 @@ class PageGeneratorController extends Controller
      */
     public function apiGenerate(Request $request)
     {
+        $metaImage = $request->input('metaImage', '');
+
+        if ($request->hasFile('featured_image')) {
+            $metaImage = $request->file('featured_image')->store('seo-images', 'public');
+        }
+
         // Explicitly map only string values for the template to prevent Array to string conversion errors
         $template = SeoTemplate::updateOrCreate(
             ['slug_structure' => (string) $request->input('slug', '')],
             [
                 'name' => 'PageForge Live Template - ' . $request->input('title', ''),
                 'title_structure' => (string) $request->input('title', ''),
-                'content' => (string) $request->input('content', '')
+                'content' => (string) $request->input('content', ''),
+
+                'meta_title' => $request->input('metaTitle', ''),
+                'meta_description' => $request->input('metaDescription', ''),
+                'keywords' => $request->input('metaKeywords', ''),
+                'meta_image' => $metaImage,
+                'author' => $request->input('author', ''),
+                'publisher' => $request->input('publisher', ''),
+                'copyright' => $request->input('copyright', ''),
+                'site_name' => $request->input('siteName', ''),
             ]
         );
 
         $bundleIds = [];
-        $bundles = $request->input('keyword_bundles', []);
+        $bundlesInput = $request->input('bundles');
+        $bundles = is_string($bundlesInput) ? json_decode($bundlesInput, true) : [];
 
         if (is_array($bundles)) {
             foreach ($bundles as $key => $bundleData) {
