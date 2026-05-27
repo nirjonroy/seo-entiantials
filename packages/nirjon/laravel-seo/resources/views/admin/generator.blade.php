@@ -45,6 +45,40 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Meta Title</label>
+                    <input type="text" id="meta_title" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Meta Description</label>
+                    <textarea id="meta_description" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Meta Keywords</label>
+                    <input type="text" id="meta_keywords" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Upload Featured Image</label>
+                    <input type="file" id="featured_image" accept="image/*" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Author</label>
+                    <input type="text" id="author" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Publisher</label>
+                    <input type="text" id="publisher" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Copyright</label>
+                    <input type="text" id="copyright" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Site Name</label>
+                    <input type="text" id="site_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700">Keyword Bundle 1 (comma separated)</label>
                     <input type="text" id="bundle1" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
                 </div>
@@ -53,6 +87,27 @@
                     <label class="block text-sm font-medium text-gray-700">Keyword Bundle 2 (comma separated)</label>
                     <input type="text" id="bundle2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 border">
                 </div>
+
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 p-5 rounded-md mb-6 text-sm shadow-sm">
+    <h4 class="text-base font-bold mb-3 flex items-center text-blue-900">
+        <span class="mr-2 text-lg"></span> How to Get the Best Results:
+    </h4>
+    <ul class="list-disc pl-5 space-y-3 text-gray-700">
+        <li>
+            <strong class="text-gray-900">Dynamic Keywords:</strong> Use <code>{0}</code> for words in your first bundle, and <code>{1}</code> for the second. 
+            <br><span class="text-xs text-gray-500 italic">Example: "Looking for {0} repair in {1}?" will automatically become "Looking for iPhone repair in London?"</span>
+        </li>
+        <li>
+            <strong class="text-gray-900">Keep Content Unique (Spintax):</strong> Prevent duplicate content penalties in SEO by using format like <code>{Best|Top|Reliable}</code>. The generator will randomly pick one word for every new page.
+        </li>
+        <li>
+            <strong class="text-gray-900">Add Images & Videos:</strong> Make your content engaging! Feel free to paste standard HTML tags like <code>&lt;img src="..."&gt;</code> or YouTube <code>&lt;iframe src="..."&gt;</code> directly into the Content box.
+        </li>
+        <li>
+            <strong class="text-gray-900">Social Media Preview:</strong> Upload a catchy Featured Image. This will automatically generate Open Graph (OG) tags so your pages look professional when shared on Facebook, Twitter, or LinkedIn.
+        </li>
+    </ul>
+</div>
 
                 <button type="button" id="generate-btn" onclick="generatePages()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition-colors">
                     Generate Pages
@@ -146,25 +201,44 @@
             const templateSlug = document.getElementById('templateSlug').value;
             const content = document.getElementById('content').value;
             
+            const metaTitle = document.getElementById('meta_title').value;
+            const metaDescription = document.getElementById('meta_description').value;
+            const metaKeywords = document.getElementById('meta_keywords').value;
+            const author = document.getElementById('author').value;
+            const publisher = document.getElementById('publisher').value;
+            const copyright = document.getElementById('copyright').value;
+            const siteName = document.getElementById('site_name').value;
+            
             const bundle1Input = document.getElementById('bundle1').value;
             const bundle2Input = document.getElementById('bundle2').value;
             
             const bundle1 = bundle1Input ? bundle1Input.split(',').map(s => s.trim()).filter(s => s) : [];
             const bundle2 = bundle2Input ? bundle2Input.split(',').map(s => s.trim()).filter(s => s) : [];
 
-            const payload = {
-                title: templateTitle,
-                slug: templateSlug,
-                content: content,
-                keyword_bundles: []
-            };
-
+            let bundles = [];
             if (bundle1.length > 0) {
-                payload.keyword_bundles.push({ name: 'Bundle 1', keywords: bundle1 });
+                bundles.push({ name: 'Bundle 1', keywords: bundle1 });
             }
             if (bundle2.length > 0) {
-                payload.keyword_bundles.push({ name: 'Bundle 2', keywords: bundle2 });
+                bundles.push({ name: 'Bundle 2', keywords: bundle2 });
             }
+
+            const formData = new FormData();
+            formData.append('title', templateTitle);
+            formData.append('slug', templateSlug);
+            formData.append('content', content);
+            formData.append('metaTitle', metaTitle);
+            formData.append('metaDescription', metaDescription);
+            formData.append('metaKeywords', metaKeywords);
+            formData.append('author', author);
+            formData.append('publisher', publisher);
+            formData.append('copyright', copyright);
+            formData.append('siteName', siteName);
+            
+            if (document.getElementById('featured_image').files.length > 0) {
+                formData.append('featured_image', document.getElementById('featured_image').files[0]);
+            }
+            formData.append('bundles', JSON.stringify(bundles));
 
             const btn = document.getElementById('generate-btn');
             const loading = document.getElementById('loading-ui');
@@ -181,10 +255,9 @@
                 const response = await fetch('/seo-admin/generator/api-generate', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': tokenValue
                     },
-                    body: JSON.stringify(payload)
+                    body: formData
                 });
 
                 const data = await response.json();
