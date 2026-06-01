@@ -32,9 +32,9 @@ class InstallCommand extends Command
             '--force' => true,
         ]);
 
-        if ($this->confirm('Do you want to run the migrations now?')) {
-            $this->call('migrate');
-        }
+        $this->call('migrate', [
+            '--force' => true,
+        ]);
 
         $this->info('SEO Package installed successfully!');
     }
