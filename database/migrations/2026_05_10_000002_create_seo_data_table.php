@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('seo_data', function (Blueprint $table) {
+        Schema::create('nirjon_seo_data', function (Blueprint $table) {
             $table->id();
             $table->morphs('seoable');
             
@@ -52,6 +52,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('seo_data');
+        Schema::dropIfExists('nirjon_seo_data');
     }
 };

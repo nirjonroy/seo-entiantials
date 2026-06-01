@@ -160,7 +160,7 @@
             container.innerHTML = '<div class="text-gray-500">Loading pages...</div>';
 
             try {
-                const response = await fetch('/seo-admin/generator/api-pages');
+                const response = await fetch('/admin/seo-admin/generator/api-pages');
                 const data = await response.json();
 
                 const pages = Array.isArray(data) ? data : (data.data || []);
@@ -269,7 +269,7 @@
                 const csrfToken = document.querySelector('meta[name="csrf-token"]');
                 const tokenValue = csrfToken ? csrfToken.content : '';
 
-                const response = await fetch('/seo-admin/generator/api-generate', {
+                const response = await fetch('/admin/seo-admin/generator/api-generate', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': tokenValue

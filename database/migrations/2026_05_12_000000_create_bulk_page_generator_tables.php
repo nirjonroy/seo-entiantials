@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('seo_keyword_bundles', function (Blueprint $table) {
+        Schema::create('nirjon_seo_keyword_bundles', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
@@ -21,14 +21,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('seo_keywords', function (Blueprint $table) {
+        Schema::create('nirjon_seo_keywords', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bundle_id')->constrained('seo_keyword_bundles')->onDelete('cascade');
+            $table->foreignId('bundle_id')->constrained('nirjon_seo_keyword_bundles')->onDelete('cascade');
             $table->string('keyword');
             $table->timestamps();
         });
 
-        Schema::create('seo_templates', function (Blueprint $table) {
+        Schema::create('nirjon_seo_templates', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('title_structure');
@@ -38,15 +38,15 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('seo_template_bundles', function (Blueprint $table) {
-            $table->foreignId('template_id')->constrained('seo_templates')->onDelete('cascade');
-            $table->foreignId('bundle_id')->constrained('seo_keyword_bundles')->onDelete('cascade');
+        Schema::create('nirjon_seo_template_bundles', function (Blueprint $table) {
+            $table->foreignId('template_id')->constrained('nirjon_seo_templates')->onDelete('cascade');
+            $table->foreignId('bundle_id')->constrained('nirjon_seo_keyword_bundles')->onDelete('cascade');
             $table->primary(['template_id', 'bundle_id']);
         });
 
-        Schema::create('seo_generated_pages', function (Blueprint $table) {
+        Schema::create('nirjon_seo_generated_pages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('template_id')->constrained('seo_templates')->onDelete('cascade');
+            $table->foreignId('template_id')->constrained('nirjon_seo_templates')->onDelete('cascade');
             $table->string('url_slug')->unique();
             $table->string('final_title')->nullable();
             $table->text('final_content')->nullable();
@@ -61,10 +61,10 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('seo_generated_pages');
-        Schema::dropIfExists('seo_template_bundles');
-        Schema::dropIfExists('seo_templates');
-        Schema::dropIfExists('seo_keywords');
-        Schema::dropIfExists('seo_keyword_bundles');
+        Schema::dropIfExists('nirjon_seo_generated_pages');
+        Schema::dropIfExists('nirjon_seo_template_bundles');
+        Schema::dropIfExists('nirjon_seo_templates');
+        Schema::dropIfExists('nirjon_seo_keywords');
+        Schema::dropIfExists('nirjon_seo_keyword_bundles');
     }
 };

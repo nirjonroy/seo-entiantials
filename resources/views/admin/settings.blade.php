@@ -13,7 +13,7 @@
                 <h1 class="text-2xl font-semibold tracking-tight">SEO Settings</h1>
                 <p class="mt-1 text-sm text-slate-600">Manage package modules from the database-backed settings panel.</p>
             </div>
-            <a href="{{ url('seo-admin/generator') }}" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+            <a href="{{ url('admin/seo-admin/generator') }}" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
                 PageForge
             </a>
         </div>
@@ -24,7 +24,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ url('seo-admin/settings') }}" class="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <form method="POST" action="{{ url('admin/seo-admin/settings') }}" class="rounded-lg border border-slate-200 bg-white shadow-sm">
             @csrf
 
             <div class="border-b border-slate-200 px-6 py-4">

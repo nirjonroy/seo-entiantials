@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SeoKeyword extends Model
 {
+    protected $table = 'nirjon_seo_keywords';
+
     protected $guarded = [];
 
     public function bundle()

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('seo_settings', function (Blueprint $table) {
+        Schema::create('nirjon_seo_settings', function (Blueprint $table) {
             $table->id();
             $table->string('key')->unique();
             $table->text('value')->nullable();
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('seo_settings');
+        Schema::dropIfExists('nirjon_seo_settings');
     }
 };

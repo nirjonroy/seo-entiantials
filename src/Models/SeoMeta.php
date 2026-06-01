@@ -12,7 +12,7 @@ class SeoMeta extends Model
      *
      * @var string
      */
-    protected $table = 'seo_metas';
+    protected $table = 'nirjon_seo_metas';
 
     /**
      * The attributes that aren't mass assignable.

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SeoSetting extends Model
 {
-    protected $table = 'seo_settings';
+    protected $table = 'nirjon_seo_settings';
 
     protected $fillable = [
         'key',

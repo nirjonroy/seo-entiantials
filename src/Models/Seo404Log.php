@@ -11,7 +11,7 @@ class Seo404Log extends Model
      *
      * @var string
      */
-    protected $table = 'seo_404_logs';
+    protected $table = 'nirjon_seo_404_logs';
 
     /**
      * The attributes that aren't mass assignable.

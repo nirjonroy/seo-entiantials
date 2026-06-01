@@ -11,7 +11,7 @@ class SeoRedirect extends Model
      *
      * @var string
      */
-    protected $table = 'seo_redirects';
+    protected $table = 'nirjon_seo_redirects';
 
     /**
      * The attributes that aren't mass assignable.
