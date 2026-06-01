@@ -4,6 +4,7 @@ namespace Nirjon\LaravelSeo\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Route;
 use Nirjon\LaravelSeo\Models\SeoSetting;
 
 class SeoSettingsController extends Controller
@@ -21,6 +22,7 @@ class SeoSettingsController extends Controller
     {
         $settings = SeoSetting::whereIn('key', $this->settingKeys())->pluck('value', 'key')->all();
         $modules = $this->modules;
+        $moduleLinks = $this->moduleLinks();
         $moduleValues = [];
 
         foreach ($modules as $key => $label) {
@@ -30,7 +32,7 @@ class SeoSettingsController extends Controller
                 : (bool) config("seo.modules.{$key}", false);
         }
 
-        return view('seo::admin.settings', compact('modules', 'moduleValues'));
+        return view('seo::admin.settings', compact('modules', 'moduleValues', 'moduleLinks'));
     }
 
     public function update(Request $request)
@@ -55,5 +57,17 @@ class SeoSettingsController extends Controller
     private function settingKeys(): array
     {
         return array_map(fn ($key) => $this->settingKey($key), array_keys($this->modules));
+    }
+
+    private function moduleLinks(): array
+    {
+        return [
+            'PageForge' => route('seo.generator'),
+            'Redirects' => Route::has('seo.redirects') ? route('seo.redirects') : '#',
+            'Meta Tags' => Route::has('seo.meta') ? route('seo.meta') : '#',
+            'Sitemap' => Route::has('seo.sitemap') ? route('seo.sitemap') : '#',
+            'Schema' => Route::has('seo.schema') ? route('seo.schema') : '#',
+            'Reports' => Route::has('seo.reports') ? route('seo.reports') : '#',
+        ];
     }
 }

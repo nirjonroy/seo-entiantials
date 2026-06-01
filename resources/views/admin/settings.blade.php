@@ -13,9 +13,13 @@
                 <h1 class="text-2xl font-semibold tracking-tight">SEO Settings</h1>
                 <p class="mt-1 text-sm text-slate-600">Manage package modules from the database-backed settings panel.</p>
             </div>
-            <a href="{{ url('admin/seo-admin/generator') }}" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
-                PageForge
-            </a>
+            <div class="flex gap-2">
+                @foreach($moduleLinks as $label => $url)
+                    <a href="{{ $url }}" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                        {{ $label }}
+                    </a>
+                @endforeach
+            </div>
         </div>
 
         @if(session('status'))
