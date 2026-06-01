@@ -50,10 +50,12 @@ class PageGenerationEngine
         // Find the template by ID and fetch its attached bundles and their keywords
         $template = SeoTemplate::with('bundles.keywords')->findOrFail($templateId);
 
-        // Build an associative array of bundle slugs to keywords
+        // Build arrays by bundle position so UI placeholders like {0}, {1} resolve correctly.
         $keywordArrays = [];
-        foreach ($template->bundles as $bundle) {
-            $keywordArrays[$bundle->slug] = $bundle->keywords->pluck('keyword')->toArray();
+        $bundleSlugs = [];
+        foreach ($template->bundles->values() as $index => $bundle) {
+            $keywordArrays[$index] = $bundle->keywords->pluck('keyword')->toArray();
+            $bundleSlugs[$index] = $bundle->slug;
         }
 
         if (empty($keywordArrays)) {
@@ -74,16 +76,25 @@ class PageGenerationEngine
             $metaKeywords = $template->meta_keywords ?? '';
             $featuredImage = $template->featured_image ?? '';
 
-            // Replace {bundle_slug} placeholders
-            foreach ($combination as $bundleSlug => $keyword) {
-                $placeholder = '{' . $bundleSlug . '}';
-                $title = str_replace($placeholder, $keyword, $title);
-                $slug = str_replace($placeholder, $keyword, $slug);
-                $content = str_replace($placeholder, $keyword, $content);
-                $metaTitle = str_replace($placeholder, $keyword, $metaTitle);
-                $metaDescription = str_replace($placeholder, $keyword, $metaDescription);
-                $metaKeywords = str_replace($placeholder, $keyword, $metaKeywords);
-                $featuredImage = str_replace($placeholder, $keyword, $featuredImage);
+            // Replace both current numeric placeholders ({0}, {1}) and legacy bundle-slug placeholders.
+            foreach ($combination as $bundleIndex => $keyword) {
+                $placeholders = [
+                    '{' . $bundleIndex . '}',
+                ];
+
+                if (isset($bundleSlugs[$bundleIndex])) {
+                    $placeholders[] = '{' . $bundleSlugs[$bundleIndex] . '}';
+                }
+
+                foreach ($placeholders as $placeholder) {
+                    $title = str_replace($placeholder, $keyword, $title);
+                    $slug = str_replace($placeholder, $keyword, $slug);
+                    $content = str_replace($placeholder, $keyword, $content);
+                    $metaTitle = str_replace($placeholder, $keyword, $metaTitle);
+                    $metaDescription = str_replace($placeholder, $keyword, $metaDescription);
+                    $metaKeywords = str_replace($placeholder, $keyword, $metaKeywords);
+                    $featuredImage = str_replace($placeholder, $keyword, $featuredImage);
+                }
             }
 
             $title = $this->parseSpintax($title);
