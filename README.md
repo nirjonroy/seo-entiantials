@@ -240,8 +240,6 @@ These routes are registered by the package:
 
 Their content comes from `config/seo.php`.
 
-Note: the current controller reads `seo.files.robots` and `seo.files.security`, while the config file defines `robots_txt` and `security_txt`. If those two routes return blank content, align the config keys or controller keys before production use.
-
 ## Redirects And 404 Logs
 
 The package includes middleware for:
@@ -302,28 +300,21 @@ Because this is a catch-all route, keep it after all other specific frontend rou
 
 ## PageForge Placeholders
 
-The admin UI currently creates two keyword bundles named `Bundle 1` and `Bundle 2`.
-
-The backend converts those names to slugs:
+The admin UI currently supports two keyword bundles. Use these shortcodes in title, slug, content, and meta fields:
 
 ```text
-bundle-1
-bundle-2
+{0}
+{1}
 ```
 
-Use these placeholders in title, slug, content, and meta fields:
-
-```text
-{bundle-1}
-{bundle-2}
-```
+`{0}` uses values from the first keyword bundle. `{1}` uses values from the second keyword bundle.
 
 Example:
 
 ```text
-Title: {Best|Top|Affordable} {bundle-1} repair in {bundle-2}
-Slug: {bundle-1}-repair-{bundle-2}
-Content: <p>We provide {fast|trusted|professional} {bundle-1} repair in {bundle-2}.</p>
+Title: {Best|Top|Affordable} {0} repair in {1}
+Slug: {0}-repair-{1}
+Content: <p>We provide {fast|trusted|professional} {0} repair in {1}.</p>
 ```
 
 With bundle values:
