@@ -135,8 +135,10 @@
             var routes = {
                 pages: @json(route('seo.generator.apiPages')),
                 generate: @json(route('seo.generator.apiGenerate')),
-                deletePage: @json(url('admin/seo-admin/generator/api-pages'))
+                destroyPageBase: @json(url('admin/seo-admin/generator/pages'))
             };
+            var csrfField = @json(csrf_field());
+            var deleteMethodField = @json(method_field('DELETE'));
 
             var editor = null;
 
@@ -239,7 +241,11 @@
                         html += '<td class="border-b px-4 py-2">';
                         html += '<div class="flex items-center gap-3">';
                         html += '<a href="' + viewUrl + '" target="_blank" class="text-blue-600 hover:underline">View</a>';
-                        html += '<button type="button" data-delete-page-id="' + page.id + '" class="text-red-600 hover:underline">Delete</button>';
+                        html += '<form method="POST" action="' + routes.destroyPageBase + '/' + encodeURIComponent(page.id) + '" onsubmit="return confirm(\'Delete this generated page?\')" class="inline">';
+                        html += csrfField;
+                        html += deleteMethodField;
+                        html += '<button type="submit" class="text-red-600 hover:underline">Delete</button>';
+                        html += '</form>';
                         html += '</div>';
                         html += '</td>';
                         html += '</tr>';
@@ -249,33 +255,6 @@
                     container.innerHTML = html;
                 } catch (error) {
                     container.innerHTML = '<div class="text-red-500">An error occurred while fetching pages.</div>';
-                }
-            }
-
-            async function deleteGeneratedPage(pageId) {
-                if (!pageId || !confirm('Delete this generated page?')) {
-                    return;
-                }
-
-                try {
-                    var csrfToken = document.querySelector('meta[name="csrf-token"]');
-                    var response = await fetch(routes.deletePage + '/' + encodeURIComponent(pageId), {
-                        method: 'DELETE',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken ? csrfToken.content : ''
-                        }
-                    });
-                    var data = await response.json();
-
-                    if (!response.ok || !data.success) {
-                        alert(data.message || 'Failed to delete generated page.');
-                        return;
-                    }
-
-                    fetchAndRenderPages();
-                } catch (error) {
-                    alert('A network error occurred while deleting the generated page.');
                 }
             }
 
@@ -306,6 +285,10 @@
                 formData.append('publisher', getValue('publisher'));
                 formData.append('copyright', getValue('copyright'));
                 formData.append('siteName', getValue('site_name'));
+                formData.append('keyword_bundle_1', bundle1Input);
+                formData.append('keyword_bundle_2', bundle2Input);
+                formData.append('bundle1', bundle1Input);
+                formData.append('bundle2', bundle2Input);
                 formData.append('bundles', JSON.stringify(bundles));
 
                 if (featuredImage && featuredImage.files.length > 0) {
@@ -393,16 +376,6 @@
                     generateButton.addEventListener('click', generatePages);
                 }
 
-                var pagesContainer = byId('generatedPagesContainer');
-                if (pagesContainer) {
-                    pagesContainer.addEventListener('click', function (event) {
-                        var deleteButton = event.target.closest('[data-delete-page-id]');
-
-                        if (deleteButton) {
-                            deleteGeneratedPage(deleteButton.getAttribute('data-delete-page-id'));
-                        }
-                    });
-                }
             });
         })();
     </script>

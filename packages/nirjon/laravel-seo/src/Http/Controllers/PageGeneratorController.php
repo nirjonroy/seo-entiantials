@@ -4,10 +4,11 @@ namespace Nirjon\LaravelSeo\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Nirjon\LaravelSeo\Models\SeoTemplate;
 use Nirjon\LaravelSeo\Models\SeoKeywordBundle;
 use Nirjon\LaravelSeo\Models\SeoKeyword;
-use Nirjon\LaravelSeo\Jobs\GeneratePagesJob;
 use Nirjon\LaravelSeo\Models\SeoGeneratedPage;
 
 class PageGeneratorController extends Controller
@@ -35,22 +36,6 @@ class PageGeneratorController extends Controller
     }
 
     /**
-     * Delete a generated page from the UI.
-     *
-     * @param SeoGeneratedPage $page
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function apiDeletePage(SeoGeneratedPage $page)
-    {
-        $page->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Generated page deleted successfully.'
-        ]);
-    }
-
-    /**
      * Generate pages from a template using a background job.
      *
      * @param Request $request
@@ -58,71 +43,160 @@ class PageGeneratorController extends Controller
      */
     public function apiGenerate(Request $request)
     {
-        $metaImage = $request->input('metaImage', '');
+        $bundle1Values = $this->keywordsFromInput($request, 0, 'keyword_bundle_1', 'bundle1');
+        $bundle2Values = $this->keywordsFromInput($request, 1, 'keyword_bundle_2', 'bundle2');
 
-        if ($request->hasFile('featured_image')) {
-            $metaImage = $request->file('featured_image')->store('seo-images', 'public');
+        if (empty($bundle1Values) || empty($bundle2Values)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Keyword Bundle 1 and Keyword Bundle 2 are required.'
+            ], 422);
         }
 
-        // Explicitly map only string values for the template to prevent Array to string conversion errors
-        $template = SeoTemplate::updateOrCreate(
-            ['slug_structure' => (string) $request->input('slug', '')],
-            [
-                'name' => 'PageForge Live Template - ' . $request->input('title', ''),
-                'title_structure' => (string) $request->input('title', ''),
-                'content' => (string) $request->input('content', ''),
+        $generatedCount = DB::transaction(function () use ($request, $bundle1Values, $bundle2Values) {
+            $metaImage = $request->input('metaImage', '');
 
-                'meta_title' => $request->input('metaTitle', ''),
-                'meta_description' => $request->input('metaDescription', ''),
-                'keywords' => $request->input('metaKeywords', ''),
-                'meta_image' => $metaImage,
-                'author' => $request->input('author', ''),
-                'publisher' => $request->input('publisher', ''),
-                'copyright' => $request->input('copyright', ''),
-                'site_name' => $request->input('siteName', ''),
-            ]
-        );
+            if ($request->hasFile('featured_image')) {
+                $metaImage = $request->file('featured_image')->store('seo-images', 'public');
+            }
 
-        $bundleIds = [];
-        $bundlesInput = $request->input('bundles');
-        $bundles = is_string($bundlesInput) ? json_decode($bundlesInput, true) : [];
+            $templateTitle = (string) $request->input('title', '');
+            $templateSlug = (string) $request->input('slug', '');
+            $templateContent = (string) $request->input('content', '');
+            $templateMetaTitle = (string) $request->input('metaTitle', '');
+            $templateMetaDescription = (string) $request->input('metaDescription', '');
+            $templateMetaKeywords = (string) $request->input('metaKeywords', '');
 
-        if (is_array($bundles)) {
-            foreach ($bundles as $key => $bundleData) {
-                if (!is_array($bundleData) || empty($bundleData['name'])) {
-                    continue;
-                }
+            $template = SeoTemplate::updateOrCreate(
+                ['slug_structure' => $templateSlug],
+                [
+                    'name' => 'PageForge Live Template - ' . $templateTitle,
+                    'title_structure' => $templateTitle,
+                    'content' => $templateContent,
+                    'meta_title' => $templateMetaTitle,
+                    'meta_description' => $templateMetaDescription,
+                    'meta_keywords' => $templateMetaKeywords,
+                    'featured_image' => $metaImage,
+                ]
+            );
 
-                $bundleSlug = (string) $key;
+            $bundleIds = [
+                $this->syncKeywordBundle('Bundle 1', '0', $bundle1Values)->id,
+                $this->syncKeywordBundle('Bundle 2', '1', $bundle2Values)->id,
+            ];
 
-                $bundle = SeoKeywordBundle::updateOrCreate(
-                    ['slug' => $bundleSlug],
-                    ['name' => (string) $bundleData['name'], 'is_active' => true]
-                );
+            $template->bundles()->sync($bundleIds);
+            $template->generatedPages()->delete();
 
-                $bundleIds[] = $bundle->id;
+            $generatedCount = 0;
 
-                if (isset($bundleData['keywords']) && is_array($bundleData['keywords'])) {
-                    // Wipe and recreate keywords for this bundle
-                    $bundle->keywords()->delete();
-                    foreach ($bundleData['keywords'] as $keywordValue) {
-                        SeoKeyword::create([
-                            'bundle_id' => $bundle->id,
-                            'keyword' => (string) $keywordValue
-                        ]);
+            foreach ($bundle1Values as $bundle1Value) {
+                foreach ($bundle2Values as $bundle2Value) {
+                    $replacements = [$bundle1Value, $bundle2Value];
+                    $placeholders = ['{0}', '{1}'];
+
+                    $title = $this->parseSpintax(str_replace($placeholders, $replacements, $templateTitle));
+                    $slug = str_replace($placeholders, $replacements, $templateSlug);
+                    $content = $this->parseSpintax(str_replace($placeholders, $replacements, $templateContent));
+                    $metaTitle = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaTitle));
+                    $metaDescription = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaDescription));
+                    $metaKeywords = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaKeywords));
+                    $urlSlug = Str::slug($this->parseSpintax($slug));
+
+                    if (empty($urlSlug)) {
+                        continue;
                     }
+
+                    SeoGeneratedPage::updateOrCreate(
+                        ['url_slug' => $urlSlug],
+                        [
+                            'template_id' => $template->id,
+                            'final_title' => $title,
+                            'final_content' => $content,
+                            'meta_title' => $metaTitle,
+                            'meta_description' => $metaDescription,
+                            'meta_keywords' => $metaKeywords,
+                            'featured_image' => $metaImage,
+                        ]
+                    );
+
+                    $generatedCount++;
                 }
             }
-        }
 
-        // Finally, sync them to the template
-        $template->bundles()->sync($bundleIds);
-
-        GeneratePagesJob::dispatch($template->id);
+            return $generatedCount;
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'Generation started in background!'
+            'message' => $generatedCount . ' generated page(s) created successfully.'
         ]);
+    }
+
+    public function destroy(SeoGeneratedPage $page)
+    {
+        $page->delete();
+
+        return redirect()->route('seo.generator')->with('status', 'Generated page deleted successfully.');
+    }
+
+    private function keywordsFromInput(Request $request, int $bundleIndex, string $primaryInputName, string $fallbackInputName): array
+    {
+        $rawInput = (string) $request->input($primaryInputName, $request->input($fallbackInputName, ''));
+
+        if ($rawInput !== '') {
+            return $this->csvToArray($rawInput);
+        }
+
+        $bundlesInput = $request->input('bundles');
+        $bundles = is_string($bundlesInput) ? json_decode($bundlesInput, true) : [];
+
+        if (!is_array($bundles) || !isset($bundles[$bundleIndex]['keywords']) || !is_array($bundles[$bundleIndex]['keywords'])) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn ($keyword) => trim((string) $keyword),
+            $bundles[$bundleIndex]['keywords']
+        )));
+    }
+
+    private function csvToArray(string $value): array
+    {
+        return array_values(array_filter(array_map(
+            fn ($item) => trim($item),
+            explode(',', $value)
+        )));
+    }
+
+    private function syncKeywordBundle(string $name, string $slug, array $keywords): SeoKeywordBundle
+    {
+        $bundle = SeoKeywordBundle::updateOrCreate(
+            ['slug' => $slug],
+            ['name' => $name, 'is_active' => true]
+        );
+
+        $bundle->keywords()->delete();
+
+        foreach ($keywords as $keyword) {
+            SeoKeyword::create([
+                'bundle_id' => $bundle->id,
+                'keyword' => $keyword,
+            ]);
+        }
+
+        return $bundle;
+    }
+
+    private function parseSpintax(string $text): string
+    {
+        return preg_replace_callback(
+            '/\{(((?>[^\{\}]+)|(?R))*)\}/x',
+            function ($matches) {
+                $parts = explode('|', $matches[1]);
+                return $parts[array_rand($parts)];
+            },
+            $text
+        );
     }
 }
