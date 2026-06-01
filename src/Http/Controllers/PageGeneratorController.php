@@ -35,6 +35,22 @@ class PageGeneratorController extends Controller
     }
 
     /**
+     * Delete a generated page from the UI.
+     *
+     * @param SeoGeneratedPage $page
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function apiDeletePage(SeoGeneratedPage $page)
+    {
+        $page->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Generated page deleted successfully.'
+        ]);
+    }
+
+    /**
      * Generate pages from a template using a background job.
      *
      * @param Request $request
@@ -77,7 +93,7 @@ class PageGeneratorController extends Controller
                     continue;
                 }
 
-                $bundleSlug = \Illuminate\Support\Str::slug($bundleData['name']) ?: 'bundle-' . $key;
+                $bundleSlug = (string) $key;
 
                 $bundle = SeoKeywordBundle::updateOrCreate(
                     ['slug' => $bundleSlug],

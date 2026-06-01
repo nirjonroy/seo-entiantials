@@ -65,6 +65,9 @@ class PageGenerationEngine
         // Get all combinations
         $combinations = $this->getCartesianProduct($keywordArrays);
 
+        // Regeneration should replace stale pages from older placeholder formats like 0-repair-1.
+        $template->generatedPages()->delete();
+
         $generatedCount = 0;
 
         foreach ($combinations as $combination) {
