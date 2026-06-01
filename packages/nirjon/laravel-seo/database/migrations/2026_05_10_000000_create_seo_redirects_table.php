@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('seo_redirects', function (Blueprint $table) {
+        Schema::create('nirjon_seo_redirects', function (Blueprint $table) {
             $table->id();
             $table->string('source_url')->index();
             $table->string('destination_url')->nullable();
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('seo_redirects');
+        Schema::dropIfExists('nirjon_seo_redirects');
     }
 };

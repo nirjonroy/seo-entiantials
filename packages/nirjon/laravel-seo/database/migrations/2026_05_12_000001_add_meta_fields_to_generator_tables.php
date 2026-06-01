@@ -13,13 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('seo_templates', function (Blueprint $table) {
+        Schema::table('nirjon_seo_templates', function (Blueprint $table) {
             $table->string('meta_title')->nullable();
             $table->string('meta_description')->nullable();
             $table->string('meta_keywords')->nullable();
         });
 
-        Schema::table('seo_generated_pages', function (Blueprint $table) {
+        Schema::table('nirjon_seo_generated_pages', function (Blueprint $table) {
             $table->string('meta_title')->nullable();
             $table->string('meta_description')->nullable();
             $table->string('meta_keywords')->nullable();
@@ -33,11 +33,11 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('seo_generated_pages', function (Blueprint $table) {
+        Schema::table('nirjon_seo_generated_pages', function (Blueprint $table) {
             $table->dropColumn(['meta_title', 'meta_description', 'meta_keywords']);
         });
 
-        Schema::table('seo_templates', function (Blueprint $table) {
+        Schema::table('nirjon_seo_templates', function (Blueprint $table) {
             $table->dropColumn(['meta_title', 'meta_description', 'meta_keywords']);
         });
     }

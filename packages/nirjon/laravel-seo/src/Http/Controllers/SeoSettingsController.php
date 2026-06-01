@@ -44,7 +44,7 @@ class SeoSettingsController extends Controller
             );
         }
 
-        return redirect('seo-admin/settings')->with('status', 'SEO settings saved successfully.');
+        return redirect('admin/seo-admin/settings')->with('status', 'SEO settings saved successfully.');
     }
 
     private function settingKey(string $module): string

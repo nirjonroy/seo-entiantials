@@ -98,7 +98,7 @@ class SEOServiceProvider extends ServiceProvider
     protected function loadSettingsFromDatabase(): void
     {
         try {
-            if (!\Illuminate\Support\Facades\Schema::hasTable('seo_settings')) {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('nirjon_seo_settings')) {
                 return;
             }
 

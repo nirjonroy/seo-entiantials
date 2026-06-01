@@ -58,8 +58,8 @@ composer dump-autoload
 | `/robots.txt` | Robots file response |
 | `/llms.txt` | LLM crawler information file |
 | `/.well-known/security.txt` | Security contact file |
-| `/seo-admin/generator` | PageForge bulk page generator admin UI |
-| `/seo-admin/settings` | GUI settings manager for SEO modules |
+| `/admin/seo-admin/generator` | PageForge bulk page generator admin UI |
+| `/admin/seo-admin/settings` | GUI settings manager for SEO modules |
 | `/{slug}` | Displays generated SEO pages |
 
 ## Configuration
@@ -70,7 +70,7 @@ The package publishes a config file:
 config/seo.php
 ```
 
-Most users do not need to edit this file manually for module control. Use the GUI Settings Manager at `/seo-admin/settings` to turn individual modules on or off from the database.
+Most users do not need to edit this file manually for module control. Use the GUI Settings Manager at `/admin/seo-admin/settings` to turn individual modules on or off from the database.
 
 Important sections:
 
@@ -97,10 +97,10 @@ SEO_BING_VERIFICATION=your-bing-code
 The package includes a database-backed settings dashboard:
 
 ```text
-/seo-admin/settings
+/admin/seo-admin/settings
 ```
 
-Users no longer need to edit `config/seo.php` manually to enable or disable modules. The settings manager writes module preferences to the `seo_settings` table, and the service provider safely loads those values on boot.
+Users no longer need to edit `config/seo.php` manually to enable or disable modules. The settings manager writes module preferences to the `nirjon_seo_settings` table, and the service provider safely loads those values on boot.
 
 Available module toggles:
 
@@ -111,7 +111,7 @@ Available module toggles:
 - Image SEO
 - Minification
 
-These settings override `seo.modules.*` dynamically when the `seo_settings` table exists. The provider checks the table safely before querying it, so the app will not crash before installation.
+These settings override `seo.modules.*` dynamically when the `nirjon_seo_settings` table exists. The provider checks the table safely before querying it, so the app will not crash before installation.
 
 ## Adding SEO Tags To Layouts
 
@@ -271,9 +271,9 @@ The package includes middleware for:
 - feed/XML `X-Robots-Tag`
 - HTML minification
 
-404 records are stored in `seo_404_logs`.
+404 records are stored in `nirjon_seo_404_logs`.
 
-Redirect records are stored in `seo_redirects`. The redirect middleware expects records with fields such as:
+Redirect records are stored in `nirjon_seo_redirects`. The redirect middleware expects records with fields such as:
 
 ```text
 source_url
@@ -289,7 +289,7 @@ is_active
 Open the admin UI:
 
 ```text
-/seo-admin/generator
+/admin/seo-admin/generator
 ```
 
 The generator creates SEO landing pages from:
@@ -305,7 +305,7 @@ The generator creates SEO landing pages from:
 Generated pages are stored in:
 
 ```text
-seo_generated_pages
+nirjon_seo_generated_pages
 ```
 
 Generated pages are displayed by this root route in `routes/web.php`:
@@ -442,7 +442,7 @@ routes/web.php
 
 If SEO tags do not appear, confirm `<x-seo::tags />` is inside the page `<head>` and run `composer dump-autoload`.
 
-If `/seo-admin/generator` opens but pages are not created, run a queue worker or set `QUEUE_CONNECTION=sync` for local testing.
+If `/admin/seo-admin/generator` opens but pages are not created, run a queue worker or set `QUEUE_CONNECTION=sync` for local testing.
 
 If generated pages return 404, confirm the catch-all `/{slug}` route exists and is below other routes.
 

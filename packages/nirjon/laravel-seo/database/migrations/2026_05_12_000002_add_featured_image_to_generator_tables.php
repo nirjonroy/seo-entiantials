@@ -13,11 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('seo_templates', function (Blueprint $table) {
+        Schema::table('nirjon_seo_templates', function (Blueprint $table) {
             $table->string('featured_image')->nullable();
         });
 
-        Schema::table('seo_generated_pages', function (Blueprint $table) {
+        Schema::table('nirjon_seo_generated_pages', function (Blueprint $table) {
             $table->string('featured_image')->nullable();
         });
     }
@@ -29,11 +29,11 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('seo_generated_pages', function (Blueprint $table) {
+        Schema::table('nirjon_seo_generated_pages', function (Blueprint $table) {
             $table->dropColumn('featured_image');
         });
 
-        Schema::table('seo_templates', function (Blueprint $table) {
+        Schema::table('nirjon_seo_templates', function (Blueprint $table) {
             $table->dropColumn('featured_image');
         });
     }

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('seo_404_logs', function (Blueprint $table) {
+        Schema::create('nirjon_seo_404_logs', function (Blueprint $table) {
             $table->id();
             $table->string('url');
             $table->string('referer')->nullable();
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('seo_404_logs');
+        Schema::dropIfExists('nirjon_seo_404_logs');
     }
 };
