@@ -6,10 +6,15 @@
     <title>PageForge Generator</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .tab-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; }
+        .note-editor.note-frame { border-color: #d1d5db; border-radius: 0.375rem; margin-top: 0.25rem; }
+        .note-toolbar { background: #f9fafb; border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem; }
     </style>
 </head>
 <body class="bg-gray-100 p-8">
@@ -126,6 +131,18 @@
     </div>
 
     <script>
+        $(function () {
+            $('#content').summernote({
+                height: 220,
+                placeholder: 'Write page content...',
+                toolbar: [
+                    ['style', ['bold', 'italic']],
+                    ['insert', ['link']],
+                    ['view', ['codeview']]
+                ]
+            });
+        });
+
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -199,7 +216,7 @@
         async function generatePages() {
             const templateTitle = document.getElementById('templateTitle').value;
             const templateSlug = document.getElementById('templateSlug').value;
-            const content = document.getElementById('content').value;
+            const content = $('#content').summernote('code');
             
             const metaTitle = document.getElementById('meta_title').value;
             const metaDescription = document.getElementById('meta_description').value;
@@ -266,6 +283,7 @@
                     alertContainer.textContent = data.message || 'Generation successful!';
                     alertContainer.className = 'mb-4 p-4 rounded text-white bg-green-500 block';
                     document.getElementById('generator-form').reset();
+                    $('#content').summernote('reset');
                     setTimeout(() => switchTab('pages'), 1500);
                 } else {
                     alertContainer.textContent = data.message || 'Error occurred';

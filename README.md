@@ -34,18 +34,14 @@ The root project already installs the package from the local path repository:
 }
 ```
 
-For a fresh install, run:
+For a fresh install, users only need to run:
 
 ```bash
 composer install
 php artisan seo:install
 ```
 
-The install command publishes `config/seo.php` and asks whether migrations should run. If you skip migrations during install, run them later:
-
-```bash
-php artisan migrate
-```
+The `seo:install` command is fully automated. It publishes the package configuration and runs the package database migrations on its own, including the SEO metadata, redirects, 404 logs, generated pages, and GUI settings tables.
 
 If you change package classes or Composer autoloading, refresh Composer:
 
@@ -63,15 +59,18 @@ composer dump-autoload
 | `/llms.txt` | LLM crawler information file |
 | `/.well-known/security.txt` | Security contact file |
 | `/seo-admin/generator` | PageForge bulk page generator admin UI |
+| `/seo-admin/settings` | GUI settings manager for SEO modules |
 | `/{slug}` | Displays generated SEO pages |
 
 ## Configuration
 
-Edit the published config file:
+The package publishes a config file:
 
 ```text
 config/seo.php
 ```
+
+Most users do not need to edit this file manually for module control. Use the GUI Settings Manager at `/seo-admin/settings` to turn individual modules on or off from the database.
 
 Important sections:
 
@@ -92,6 +91,27 @@ You can also set verification values in `.env`:
 SEO_GOOGLE_VERIFICATION=your-google-code
 SEO_BING_VERIFICATION=your-bing-code
 ```
+
+## Admin Dashboard & GUI Settings Manager
+
+The package includes a database-backed settings dashboard:
+
+```text
+/seo-admin/settings
+```
+
+Users no longer need to edit `config/seo.php` manually to enable or disable modules. The settings manager writes module preferences to the `seo_settings` table, and the service provider safely loads those values on boot.
+
+Available module toggles:
+
+- Meta Tags
+- Sitemap
+- Schema
+- Redirects
+- Image SEO
+- Minification
+
+These settings override `seo.modules.*` dynamically when the `seo_settings` table exists. The provider checks the table safely before querying it, so the app will not crash before installation.
 
 ## Adding SEO Tags To Layouts
 
@@ -264,8 +284,6 @@ ignore_case
 is_active
 ```
 
-Note: the current redirect migration creates `old_url`, `new_url`, and `status_code`, while the middleware reads the fields above. Align the migration/database columns with the middleware before using redirects in production.
-
 ## PageForge Bulk Page Generator
 
 Open the admin UI:
@@ -278,7 +296,7 @@ The generator creates SEO landing pages from:
 
 - a title template
 - a slug template
-- content HTML
+- content HTML using a built-in Summernote Rich Text Editor
 - meta title, description, and keywords
 - optional featured image
 - two keyword bundles

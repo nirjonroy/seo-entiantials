@@ -35,6 +35,7 @@ class SEOServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'seo');
+        $this->loadSettingsFromDatabase();
 
         Blade::component('seo::tags', SeoTags::class);
         Blade::component('seo::breadcrumbs', Breadcrumbs::class);
@@ -89,5 +90,30 @@ class SEOServiceProvider extends ServiceProvider
         Blade::directive('htmlSitemap', function () {
         return "<?php echo app(\Nirjon\LaravelSeo\Services\SitemapService::class)->generateHtml(); ?>";
     });
+    }
+
+    /**
+     * Override module config values from database settings when available.
+     */
+    protected function loadSettingsFromDatabase(): void
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('seo_settings')) {
+                return;
+            }
+
+            $settings = \Nirjon\LaravelSeo\Models\SeoSetting::where('key', 'like', 'modules.%')
+                ->pluck('value', 'key');
+
+            foreach ($settings as $key => $value) {
+                $module = substr($key, strlen('modules.'));
+
+                if ($module !== '') {
+                    config(["seo.modules.{$module}" => filter_var($value, FILTER_VALIDATE_BOOLEAN)]);
+                }
+            }
+        } catch (\Throwable $exception) {
+            return;
+        }
     }
 }
