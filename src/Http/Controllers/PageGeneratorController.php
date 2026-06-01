@@ -36,15 +36,19 @@ class PageGeneratorController extends Controller
     }
 
     /**
-     * Generate pages from a template using a background job.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Generate pages from a template and two keyword bundles.
      */
     public function apiGenerate(Request $request)
     {
-        $bundle1Values = $this->keywordsFromInput($request, 0, 'keyword_bundle_1', 'bundle1');
-        $bundle2Values = $this->keywordsFromInput($request, 1, 'keyword_bundle_2', 'bundle2');
+        $bundle1Values = array_values(array_filter(array_map(
+            fn ($keyword) => trim($keyword),
+            explode(',', (string) $request->input('keyword_bundle_1', $request->input('bundle1', '')))
+        )));
+
+        $bundle2Values = array_values(array_filter(array_map(
+            fn ($keyword) => trim($keyword),
+            explode(',', (string) $request->input('keyword_bundle_2', $request->input('bundle2', '')))
+        )));
 
         if (empty($bundle1Values) || empty($bundle2Values)) {
             return response()->json([
@@ -93,37 +97,35 @@ class PageGeneratorController extends Controller
             $template->bundles()->sync($bundleIds);
             $template->generatedPages()->delete();
 
+            $placeholders = ['{0}', '{1}'];
             $generatedCount = 0;
 
-            foreach ($bundle1Values as $bundle1Value) {
-                foreach ($bundle2Values as $bundle2Value) {
-                    $replacements = [$bundle1Value, $bundle2Value];
-                    $placeholders = ['{0}', '{1}'];
+            foreach ($bundle1Values as $keyword1) {
+                foreach ($bundle2Values as $keyword2) {
+                    $replacements = [$keyword1, $keyword2];
 
                     $title = $this->parseSpintax(str_replace($placeholders, $replacements, $templateTitle));
-                    $slug = str_replace($placeholders, $replacements, $templateSlug);
+                    $slug = $this->parseSpintax(str_replace($placeholders, $replacements, $templateSlug));
                     $content = $this->parseSpintax(str_replace($placeholders, $replacements, $templateContent));
                     $metaTitle = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaTitle));
                     $metaDescription = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaDescription));
                     $metaKeywords = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaKeywords));
-                    $urlSlug = Str::slug($this->parseSpintax($slug));
+                    $urlSlug = Str::slug($slug);
 
                     if (empty($urlSlug)) {
                         continue;
                     }
 
-                    SeoGeneratedPage::updateOrCreate(
-                        ['url_slug' => $urlSlug],
-                        [
-                            'template_id' => $template->id,
-                            'final_title' => $title,
-                            'final_content' => $content,
-                            'meta_title' => $metaTitle,
-                            'meta_description' => $metaDescription,
-                            'meta_keywords' => $metaKeywords,
-                            'featured_image' => $metaImage,
-                        ]
-                    );
+                    SeoGeneratedPage::create([
+                        'template_id' => $template->id,
+                        'url_slug' => $urlSlug,
+                        'final_title' => $title,
+                        'final_content' => $content,
+                        'meta_title' => $metaTitle,
+                        'meta_description' => $metaDescription,
+                        'meta_keywords' => $metaKeywords,
+                        'featured_image' => $metaImage,
+                    ]);
 
                     $generatedCount++;
                 }
