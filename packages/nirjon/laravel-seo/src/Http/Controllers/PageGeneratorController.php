@@ -77,6 +77,11 @@ class PageGeneratorController extends Controller
                     'meta_description' => $templateMetaDescription,
                     'meta_keywords' => $templateMetaKeywords,
                     'featured_image' => $metaImage,
+                    'meta_image' => $metaImage,
+                    'author' => $request->input('author', ''),
+                    'publisher' => $request->input('publisher', ''),
+                    'copyright' => $request->input('copyright', ''),
+                    'site_name' => $request->input('siteName', ''),
                 ]
             );
 

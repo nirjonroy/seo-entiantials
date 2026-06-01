@@ -8,7 +8,22 @@ class SeoTemplate extends Model
 {
     protected $table = 'nirjon_seo_templates';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'title_structure',
+        'slug_structure',
+        'content',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'featured_image',
+        'meta_image',
+        'author',
+        'publisher',
+        'copyright',
+        'site_name',
+        'is_active',
+    ];
 
     public function bundles()
     {

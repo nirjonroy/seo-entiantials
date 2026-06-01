@@ -34,6 +34,11 @@ return new class extends Migration
             $table->string('title_structure');
             $table->string('slug_structure');
             $table->text('content')->nullable();
+            $table->string('meta_image')->nullable();
+            $table->string('author')->nullable();
+            $table->string('publisher')->nullable();
+            $table->string('copyright')->nullable();
+            $table->string('site_name')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
