@@ -75,6 +75,7 @@ Most users do not need to edit this file manually for module control. Use the GU
 Important sections:
 
 - `modules`: enable or disable package features such as meta tags, sitemap, redirects, schema, image SEO, and HTML minification.
+- `layout` and `section`: choose the Blade layout and content section used by package admin pages.
 - `defaults`: site name, title separator, default author, publisher, copyright, and default Open Graph image.
 - `sitemap`: sitemap settings and model classes that should appear in the sitemap.
 - `files`: content for robots, llms, and security text responses.
@@ -296,7 +297,7 @@ The generator creates SEO landing pages from:
 
 - a title template
 - a slug template
-- content HTML using a built-in Summernote Rich Text Editor
+- content HTML using a built-in Quill Rich Text Editor
 - meta title, description, and keywords
 - optional featured image
 - two keyword bundles
