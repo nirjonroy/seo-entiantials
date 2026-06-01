@@ -22,6 +22,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Package Admin Layout
+    |--------------------------------------------------------------------------
+    |
+    | Override these values when you want the package admin pages to render
+    | inside your application's layout and content section.
+    |
+    */
+    'layout' => 'seo::layouts.app',
+    'section' => 'content',
+
+    /*
+    |--------------------------------------------------------------------------
     | Default SEO Values
     |--------------------------------------------------------------------------
     |

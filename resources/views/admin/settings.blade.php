@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEO Settings</title>
+@extends(config('seo.layout', 'seo::layouts.app'))
+
+@push('seo_styles')
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-100 text-slate-900">
-    <main class="mx-auto max-w-4xl px-6 py-10">
+@endpush
+
+@section(config('seo.section', 'content'))
+    <main class="min-h-screen bg-slate-100 px-6 py-10 text-slate-900">
+        <div class="mx-auto max-w-4xl">
         <div class="mb-6 flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-semibold tracking-tight">SEO Settings</h1>
@@ -28,7 +27,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ url('admin/seo-admin/settings') }}" class="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <form method="POST" action="{{ route('seo.settings.update') }}" class="rounded-lg border border-slate-200 bg-white shadow-sm">
             @csrf
 
             <div class="border-b border-slate-200 px-6 py-4">
@@ -63,6 +62,6 @@
                 </button>
             </div>
         </form>
+        </div>
     </main>
-</body>
-</html>
+@endsection
