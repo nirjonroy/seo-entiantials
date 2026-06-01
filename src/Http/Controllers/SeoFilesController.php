@@ -8,7 +8,7 @@ class SeoFilesController extends Controller
 {
     public function robots()
     {
-        return response(config('seo.files.robots', ''), 200, ['Content-Type' => 'text/plain']);
+        return response(config('seo.files.robots_txt', ''), 200, ['Content-Type' => 'text/plain']);
     }
 
     public function llms()
@@ -20,6 +20,6 @@ class SeoFilesController extends Controller
 
     public function security()
     {
-        return response(config('seo.files.security', ''), 200, ['Content-Type' => 'text/plain']);
+        return response(config('seo.files.security_txt', ''), 200, ['Content-Type' => 'text/plain']);
     }
 }
