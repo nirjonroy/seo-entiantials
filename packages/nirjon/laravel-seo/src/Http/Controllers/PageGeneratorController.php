@@ -70,6 +70,16 @@ class PageGeneratorController extends Controller
             $templateMetaTitle = (string) $request->input('metaTitle', '');
             $templateMetaDescription = (string) $request->input('metaDescription', '');
             $templateMetaKeywords = (string) $request->input('metaKeywords', '');
+            $existingTemplate = SeoTemplate::where('slug_structure', $templateSlug)->first();
+            $logoImage = $request->input('logoImage', optional($existingTemplate)->logo_image ?: '');
+
+            if ($metaImage === '' && $existingTemplate) {
+                $metaImage = $existingTemplate->featured_image ?: $existingTemplate->meta_image ?: '';
+            }
+
+            if ($request->hasFile('logo_image')) {
+                $logoImage = $request->file('logo_image')->store('seo-logos', 'public');
+            }
 
             $template = SeoTemplate::updateOrCreate(
                 ['slug_structure' => $templateSlug],
@@ -86,6 +96,14 @@ class PageGeneratorController extends Controller
                     'publisher' => $request->input('publisher', ''),
                     'copyright' => $request->input('copyright', ''),
                     'site_name' => $request->input('siteName', ''),
+                    'logo_image' => $logoImage,
+                    'primary_color' => $request->input('primaryColor', '#111827'),
+                    'accent_color' => $request->input('accentColor', '#2563eb'),
+                    'background_color' => $request->input('backgroundColor', '#f8fafc'),
+                    'text_color' => $request->input('textColor', '#1f2937'),
+                    'font_family' => $request->input('fontFamily', 'Inter, Arial, sans-serif'),
+                    'container_width' => $request->input('containerWidth', '960px'),
+                    'custom_css' => $request->input('customCss', ''),
                 ]
             );
 
