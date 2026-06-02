@@ -280,7 +280,7 @@ PageForge creates landing pages from:
 - slug template
 - TinyMCE content editor
 - meta title, description, and keywords
-- optional featured image
+- optional featured image for Open Graph and visible page hero media
 - optional page logo
 - generated-page design controls for colors, font family, max content width, and custom CSS
 - author, publisher, copyright, and site name fields
@@ -288,7 +288,14 @@ PageForge creates landing pages from:
 
 Generated pages are stored in `nirjon_seo_generated_pages` and shown at `/{slug}`.
 
-The public generated page view normalizes stored HTML, resolves leftover spintax for legacy rows, emits one `<title>` tag, and passes robots, author, publisher, copyright, image, canonical, and Open Graph values to the SEO component.
+The PageForge admin UI includes:
+
+- a `Use Demo Data` modal for quickly filling a working template
+- a `CSS Classes` modal with available generated-page classes and sample CSS
+- an `Edit` button in the generated pages table that loads the page template back into the form
+- `View` and `Delete` actions for generated pages
+
+The public generated page view normalizes stored HTML, resolves leftover spintax for legacy rows, emits one `<title>` tag, and passes robots, author, publisher, copyright, image, canonical, and Open Graph values to the SEO component. When a featured image is uploaded, it is displayed visually below the hero title and reused in related-page cards. The package also exposes `/seo-media/{path}` for PageForge uploads, so generated page logos and featured images still render even before a host app creates a public storage symlink. The view also shows related generated pages below the main content, preferring pages from the same template and falling back to recent generated pages.
 
 Admins can customize generated page presentation from the PageForge form:
 
