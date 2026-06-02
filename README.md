@@ -281,12 +281,23 @@ PageForge creates landing pages from:
 - TinyMCE content editor
 - meta title, description, and keywords
 - optional featured image
+- optional page logo
+- generated-page design controls for colors, font family, max content width, and custom CSS
 - author, publisher, copyright, and site name fields
 - two keyword bundles
 
 Generated pages are stored in `nirjon_seo_generated_pages` and shown at `/{slug}`.
 
 The public generated page view normalizes stored HTML, resolves leftover spintax for legacy rows, emits one `<title>` tag, and passes robots, author, publisher, copyright, image, canonical, and Open Graph values to the SEO component.
+
+Admins can customize generated page presentation from the PageForge form:
+
+- upload a logo for the generated page header
+- choose primary, accent, background, and text colors
+- set the font family and page container width
+- add custom CSS for detailed control over generated page sections such as `.pf-page`, `.pf-header`, `.pf-card`, `.pf-hero`, `.pf-title`, and `.pf-content`
+
+The content editor uses TinyMCE with formatting, alignment, lists, links, images, media, tables, blockquotes, code samples, source code, fullscreen, and preview tools.
 
 ## PageForge Placeholders And Spintax
 

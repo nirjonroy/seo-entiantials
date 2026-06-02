@@ -22,6 +22,14 @@ class SeoTemplate extends Model
         'publisher',
         'copyright',
         'site_name',
+        'logo_image',
+        'primary_color',
+        'accent_color',
+        'background_color',
+        'text_color',
+        'font_family',
+        'container_width',
+        'custom_css',
         'is_active',
     ];
 

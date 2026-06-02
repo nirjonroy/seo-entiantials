@@ -2,14 +2,12 @@
 
 @push('seo_styles')
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
     <style>
         .nirjon-seo-tab-content { display: none; }
         .nirjon-seo-tab-content.active { display: block; }
         .nirjon-seo-tab-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; }
-        #nirjon_seo_editor { min-height: 220px; background: #fff; }
-        .nirjon-seo-editor-wrap .ql-toolbar { border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem; }
-        .nirjon-seo-editor-wrap .ql-container { border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; font-size: 0.875rem; }
+        .nirjon-seo-editor-wrap .tox-tinymce { border-color: #d1d5db; border-radius: 0.5rem; }
+        .nirjon-seo-panel-title { color: #111827; font-size: 0.95rem; font-weight: 800; }
     </style>
 @endpush
 
@@ -42,9 +40,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Content</label>
                     <div class="nirjon-seo-editor-wrap mt-1">
-                        <div id="nirjon_seo_editor"></div>
+                        <textarea id="nirjon_seo_editor" name="content"></textarea>
                     </div>
-                    <textarea id="content" class="hidden" aria-hidden="true"></textarea>
                 </div>
 
                 <div>
@@ -79,6 +76,44 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Site Name</label>
                     <input type="text" id="site_name" class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm">
+                </div>
+
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-5">
+                    <h3 class="nirjon-seo-panel-title mb-4">Generated Page Design</h3>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Page Logo</label>
+                            <input type="file" id="logo_image" accept="image/*" class="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Font Family</label>
+                            <input type="text" id="font_family" value="Inter, Arial, sans-serif" class="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Primary Color</label>
+                            <input type="color" id="primary_color" value="#111827" class="mt-1 h-10 w-full rounded-md border border-gray-300 bg-white p-1 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Accent Color</label>
+                            <input type="color" id="accent_color" value="#2563eb" class="mt-1 h-10 w-full rounded-md border border-gray-300 bg-white p-1 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Background Color</label>
+                            <input type="color" id="background_color" value="#f8fafc" class="mt-1 h-10 w-full rounded-md border border-gray-300 bg-white p-1 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Text Color</label>
+                            <input type="color" id="text_color" value="#1f2937" class="mt-1 h-10 w-full rounded-md border border-gray-300 bg-white p-1 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Container Width</label>
+                            <input type="text" id="container_width" value="960px" class="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 shadow-sm">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Custom CSS</label>
+                            <textarea id="custom_css" rows="5" class="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 font-mono text-sm shadow-sm" placeholder=".pf-hero { ... }"></textarea>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -127,7 +162,7 @@
 @endsection
 
 @push('seo_scripts')
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
     <script>
         (function () {
             'use strict';
@@ -175,20 +210,20 @@
             }
 
             function editorHtml() {
-                if (editor) {
-                    return editor.root.innerHTML;
+                if (editor && typeof editor.getContent === 'function') {
+                    return editor.getContent();
                 }
 
-                return getValue('content');
+                return getValue('nirjon_seo_editor');
             }
 
             function resetEditor() {
-                if (editor) {
-                    editor.setText('');
+                if (editor && typeof editor.setContent === 'function') {
+                    editor.setContent('');
                     return;
                 }
 
-                var content = byId('content');
+                var content = byId('nirjon_seo_editor');
                 if (content) {
                     content.value = '';
                 }
@@ -307,6 +342,13 @@
                 formData.append('publisher', getValue('publisher'));
                 formData.append('copyright', getValue('copyright'));
                 formData.append('siteName', getValue('site_name'));
+                formData.append('primaryColor', getValue('primary_color'));
+                formData.append('accentColor', getValue('accent_color'));
+                formData.append('backgroundColor', getValue('background_color'));
+                formData.append('textColor', getValue('text_color'));
+                formData.append('fontFamily', getValue('font_family'));
+                formData.append('containerWidth', getValue('container_width'));
+                formData.append('customCss', getValue('custom_css'));
                 formData.append('keyword_bundle_1', bundle1Input);
                 formData.append('keyword_bundle_2', bundle2Input);
                 formData.append('bundle1', bundle1Input);
@@ -315,6 +357,11 @@
 
                 if (featuredImage && featuredImage.files.length > 0) {
                     formData.append('featured_image', featuredImage.files[0]);
+                }
+
+                var logoImage = byId('logo_image');
+                if (logoImage && logoImage.files.length > 0) {
+                    formData.append('logo_image', logoImage.files[0]);
                 }
 
                 var btn = byId('generate-btn');
@@ -374,16 +421,22 @@
                 var editorElement = byId('nirjon_seo_editor');
                 var generateButton = byId('generate-btn');
 
-                if (editorElement && window.Quill) {
-                    editor = new window.Quill('#nirjon_seo_editor', {
-                        theme: 'snow',
+                if (editorElement && window.tinymce) {
+                    window.tinymce.init({
+                        selector: '#nirjon_seo_editor',
+                        height: 460,
+                        menubar: 'file edit view insert format tools table help',
+                        branding: false,
+                        promotion: false,
                         placeholder: 'Write page content...',
-                        modules: {
-                            toolbar: [
-                                ['bold', 'italic'],
-                                ['link'],
-                                ['code-block']
-                            ]
+                        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table wordcount help emoticons codesample',
+                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table blockquote codesample | removeformat code fullscreen preview',
+                        toolbar_mode: 'sliding',
+                        setup: function (tinyEditor) {
+                            editor = tinyEditor;
+                            tinyEditor.on('change keyup', function () {
+                                tinyEditor.save();
+                            });
                         }
                     });
                 }
