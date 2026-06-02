@@ -22,6 +22,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Package Admin Routes
+    |--------------------------------------------------------------------------
+    |
+    | Use auth:admin here if the host application protects its dashboard with
+    | a custom admin guard.
+    |
+    */
+    'admin' => [
+        'middleware' => ['web', 'auth'],
+        'sidebar' => [
+            'auto_install' => true,
+            'path' => resource_path('views/admin/sidebar.blade.php'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Default SEO Values
     |--------------------------------------------------------------------------
     |

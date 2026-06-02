@@ -61,6 +61,61 @@ You can enable or disable individual modules inside this file to perfectly suit 
     ],
 ```
 
+### Admin Route Security
+
+The package admin routes use `config('seo.admin.middleware')`. By default, the package protects admin pages and APIs with Laravel's normal web authentication:
+
+```php
+'admin' => [
+    'middleware' => ['web', 'auth'],
+],
+```
+
+For applications that use a dedicated admin guard, update the published `config/seo.php`:
+
+```php
+'admin' => [
+    'middleware' => ['web', 'auth:admin'],
+],
+```
+
+If the host dashboard accepts more than one session guard, include each allowed guard:
+
+```php
+'admin' => [
+    'middleware' => ['web', 'auth:admin,web'],
+],
+```
+
+This protects `/admin/seo-admin/generator`, `/admin/seo-admin/settings`, and related package admin API routes from guest access.
+
+### Admin Sidebar Link
+
+During `php artisan seo:install`, the package tries to add this include to the host application's admin sidebar:
+
+```blade
+@include('seo::admin.sidebar-link')
+```
+
+The default target is:
+
+```text
+resources/views/admin/sidebar.blade.php
+```
+
+If your app uses a different sidebar file, update the published `config/seo.php`:
+
+```php
+'admin' => [
+    'sidebar' => [
+        'auto_install' => true,
+        'path' => resource_path('views/admin/sidebar.blade.php'),
+    ],
+],
+```
+
+If automatic installation cannot find a writable sidebar file, add the include manually wherever the `SEO Settings` button should appear.
+
 ## 🛠️ Usage
 
 To output the generated SEO tags, simply include the provided Blade component in the `<head>` section of your application's layout file (e.g., `resources/views/layouts/app.blade.php`):

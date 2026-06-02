@@ -75,6 +75,8 @@ Most users do not need to edit this file manually for module control. Use the GU
 Important sections:
 
 - `modules`: enable or disable package features such as meta tags, sitemap, redirects, schema, image SEO, and HTML minification.
+- `admin.middleware`: middleware applied to package admin pages and APIs. The default is `['web', 'auth']`.
+- `admin.sidebar`: controls automatic installation of the package sidebar link. The default target is `resources/views/admin/sidebar.blade.php`.
 - `layout` and `section`: choose the Blade layout and content section used by package admin pages.
 - `defaults`: site name, title separator, default author, publisher, copyright, and default Open Graph image.
 - `sitemap`: sitemap settings and model classes that should appear in the sitemap.
@@ -92,6 +94,61 @@ You can also set verification values in `.env`:
 SEO_GOOGLE_VERIFICATION=your-google-code
 SEO_BING_VERIFICATION=your-bing-code
 ```
+
+### Admin Route Security
+
+The package admin URLs are protected by `config('seo.admin.middleware')`:
+
+```php
+'admin' => [
+    'middleware' => ['web', 'auth'],
+],
+```
+
+If the host application uses a separate dashboard guard, update the published `config/seo.php` file:
+
+```php
+'admin' => [
+    'middleware' => ['web', 'auth:admin'],
+],
+```
+
+If the host application accepts both normal web users and admin users in the dashboard, list both guards:
+
+```php
+'admin' => [
+    'middleware' => ['web', 'auth:admin,web'],
+],
+```
+
+This protects `/admin/seo-admin/generator`, `/admin/seo-admin/settings`, and the related admin API routes from guest access. The generated public pages at `/{slug}` remain publicly visible.
+
+### Admin Sidebar Link
+
+During `php artisan seo:install`, the package tries to add this include to the host application's admin sidebar:
+
+```blade
+@include('seo::admin.sidebar-link')
+```
+
+By default, it looks for:
+
+```text
+resources/views/admin/sidebar.blade.php
+```
+
+If your app uses a different sidebar file, update `config/seo.php` before running the installer:
+
+```php
+'admin' => [
+    'sidebar' => [
+        'auto_install' => true,
+        'path' => resource_path('views/admin/sidebar.blade.php'),
+    ],
+],
+```
+
+If automatic installation cannot find a writable sidebar file, add the include manually wherever you want the `SEO Settings` button to appear.
 
 ## Admin Dashboard & GUI Settings Manager
 
