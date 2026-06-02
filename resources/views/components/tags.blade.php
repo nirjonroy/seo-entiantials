@@ -1,7 +1,8 @@
 @php
-    $siteName = config('seo.fallbacks.site_name', env('APP_NAME', 'Laravel'));
+    $siteName = $siteName ?: config('seo.fallbacks.site_name', env('APP_NAME', 'Laravel'));
     $title = $title ?: config('seo.fallbacks.default_title', 'Welcome');
     $description = $description ?: config('seo.fallbacks.default_description', 'Default description');
+    $robots = $robots ?: 'index, follow';
 
     if (isset($model) && method_exists($model, 'getSeoTitle')) {
         $title = $model->getSeoTitle() ?: $title;
@@ -17,9 +18,23 @@
 
 <title>{{ $title }}</title>
 <meta name="description" content="{{ $description }}">
+<meta name="robots" content="{{ $robots }}">
 
 @if(!empty($keywords))
 <meta name="keywords" content="{{ $keywords }}">
+@endif
+
+@if(!empty($author))
+<meta name="author" content="{{ $author }}">
+@endif
+
+@if(!empty($publisher))
+<meta name="publisher" content="{{ $publisher }}">
+<meta property="article:publisher" content="{{ $publisher }}">
+@endif
+
+@if(!empty($copyright))
+<meta name="copyright" content="{{ $copyright }}">
 @endif
 
 <link rel="canonical" href="{{ $canonical ?: url()->current() }}">

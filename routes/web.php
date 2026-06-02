@@ -5,7 +5,7 @@ use Nirjon\LaravelSeo\Http\Controllers\GeneratedPageController;
 use Nirjon\LaravelSeo\Http\Controllers\PageGeneratorController;
 use Nirjon\LaravelSeo\Http\Controllers\SeoSettingsController;
 
-Route::middleware(['web'])->prefix('admin/seo-admin')->group(function () {
+Route::middleware(config('seo.admin.middleware', ['web', 'auth']))->prefix('admin/seo-admin')->group(function () {
     Route::get('generator', [PageGeneratorController::class, 'index'])->name('seo.generator');
     Route::get('generator/api-pages', [PageGeneratorController::class, 'apiGetPages'])->name('seo.generator.apiPages');
     Route::post('generator/api-generate', [PageGeneratorController::class, 'apiGenerate'])->name('seo.generator.apiGenerate');

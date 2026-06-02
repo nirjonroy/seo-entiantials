@@ -29,6 +29,11 @@ class SeoTags extends Component
     public $ogTitle;
     public $ogDescription;
     public $image;
+    public $author;
+    public $publisher;
+    public $copyright;
+    public $siteName;
+    public $robots;
     public $pageSchema;
 
     /**
@@ -44,7 +49,7 @@ class SeoTags extends Component
      * @param string|null $image
      * @return void
      */
-    public function __construct($model = null, $title = null, $description = null, $keywords = null, $canonical = null, $ogTitle = null, $ogDescription = null, $image = null)
+    public function __construct($model = null, $title = null, $description = null, $keywords = null, $canonical = null, $ogTitle = null, $ogDescription = null, $image = null, $author = null, $publisher = null, $copyright = null, $siteName = null, $robots = null)
     {
         $this->model = $model;
         $this->title = $title;
@@ -54,6 +59,11 @@ class SeoTags extends Component
         $this->ogTitle = $ogTitle;
         $this->ogDescription = $ogDescription;
         $this->image = $image;
+        $this->author = $author;
+        $this->publisher = $publisher;
+        $this->copyright = $copyright;
+        $this->siteName = $siteName;
+        $this->robots = $robots;
         $this->pageSchema = ['@context' => 'https://schema.org', '@type' => 'WebPage', 'name' => $title, 'description' => $description, 'image' => $image, 'url' => $canonical];
     }
 

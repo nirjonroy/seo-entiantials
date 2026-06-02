@@ -9,7 +9,7 @@ class GeneratedPageController extends Controller
 {
     public function show($slug)
     {
-        $page = SeoGeneratedPage::where('url_slug', $slug)->firstOrFail();
+        $page = SeoGeneratedPage::with('template')->where('url_slug', $slug)->firstOrFail();
 
         return view('seo::front.generated-page', compact('page'));
     }
