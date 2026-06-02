@@ -26,16 +26,55 @@ A modular Laravel SEO package for meta tags, Open Graph, schema, sitemaps, redir
 
 ## Installation
 
-Install the package with Composer:
+### Install From Packagist
+
+If the package is published on Packagist, install it normally:
 
 ```bash
 composer require nirjon/laravel-seo
+```
+
+### Install From GitHub Branch
+
+If the package is not published on Packagist yet, add the GitHub repository to the host application's root `composer.json`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/nirjonroy/seo-entiantials"
+        }
+    ],
+    "require": {
+        "nirjon/laravel-seo": "dev-package-release"
+    }
+}
+```
+
+Then install or update the dependency:
+
+```bash
+composer update nirjon/laravel-seo
+```
+
+The GitHub branch URL `https://github.com/nirjonroy/seo-entiantials/tree/package-release` is usable as a source branch because the branch contains the package `composer.json` at the repository root. In Composer, require the branch as `dev-package-release`; do not put `/tree/package-release` in the repository URL.
+
+For production, the better solution is to create a tagged release such as `v1.0.0` and require it with a stable constraint:
+
+```json
+{
+    "require": {
+        "nirjon/laravel-seo": "^1.0"
+    }
+}
 ```
 
 Run the package installer:
 
 ```bash
 php artisan seo:install
+php artisan optimize:clear
 ```
 
 The installer publishes `config/seo.php`, runs package migrations, and tries to add the SEO Settings link to `resources/views/admin/sidebar.blade.php` when that file exists and is writable.
