@@ -1,69 +1,92 @@
 # Laravel Advanced SEO
 
-An advanced, fully modular, and comprehensive SEO package for Laravel applications. Elevate your technical SEO without the hassle.
+A modular Laravel SEO package for meta tags, Open Graph, schema, sitemaps, redirects, 404 logging, SEO text files, image/link SEO helpers, breadcrumbs, HTML minification, and PageForge bulk SEO landing page generation.
 
-## 🚀 Features
+## Features
 
-This package is completely modular. You can toggle any of these features on or off in the configuration file:
+- Dynamic meta tags, canonical URLs, Open Graph, and Twitter card tags.
+- WebSite, Organization, WebPage, model, and LocalBusiness JSON-LD schema.
+- XML sitemap at `/sitemap.xml` and Blade-rendered HTML sitemap support.
+- Static SEO files for `/robots.txt`, `/llms.txt`, and `/.well-known/security.txt`.
+- Redirect manager support for 301, 302, 410, and 451 responses.
+- 404 monitor storage for broken URL tracking.
+- Automatic image SEO attributes and external link controls.
+- Breadcrumb service and Blade component.
+- Optional HTML minification middleware.
+- PageForge admin generator for bulk SEO landing pages.
+- Protected package admin routes with configurable middleware.
+- Optional admin sidebar link installation during `seo:install`.
 
-- **Dynamic Meta Tags & Open Graph**: Automatically generate standard meta tags, Open Graph (Facebook/LinkedIn), and Twitter Cards.
-- **Auto XML & HTML Sitemaps**: Dynamically generate sitemaps based on your Eloquent models and static routes.
-- **JSON-LD Schema**: Built-in support for WebSite, Organization, and LocalBusiness structured data.
-- **Static SEO Files**: Automatically handles `robots.txt`, `llms.txt`, and `.well-known/security.txt`.
-- **Advanced Redirections**: Manage 301 (Moved Permanently), 302 (Found), 410 (Gone), and 451 (Unavailable for Legal Reasons) redirects effortlessly.
-- **404 Error Monitor**: Automatically logs 404 Not Found errors so you can track broken links and fix them via redirections.
-- **Auto Image SEO**: A smart middleware that automatically generates and injects `alt` tags into your `<img>` tags based on the image filename.
-- **HTML Minifier**: Automatically minifies your HTML output on the fly, removing unnecessary whitespace and comments to improve page load speed while protecting essential tags like `<pre>`, `<textarea>`, `<script>`, and `<style>`.
+## Requirements
 
-## 📋 Requirements
+- PHP 8.0 or newer
+- Laravel 9 or newer
+- Composer
+- Database connection configured in `.env`
 
-- **PHP** >= 8.0
-- **Laravel** >= 9.x
+## Installation
 
-## 📦 Installation
-
-You can install the package via Composer:
+Install the package with Composer:
 
 ```bash
 composer require nirjon/laravel-seo
 ```
 
-After requiring the package, run the built-in installation command. This will publish the configuration file and execute the necessary database migrations (for Redirections and 404 Logs):
+Run the package installer:
 
 ```bash
 php artisan seo:install
 ```
 
-## ⚙️ Configuration
+The installer publishes `config/seo.php`, runs package migrations, and tries to add the SEO Settings link to `resources/views/admin/sidebar.blade.php` when that file exists and is writable.
 
-The installation command publishes a configuration file at `config/seo.php`.
+After changing package classes or Composer path repositories, refresh autoloading:
 
-You can enable or disable individual modules inside this file to perfectly suit your application's needs:
-
-```php
-    /*
-    |--------------------------------------------------------------------------
-    | SEO Modules
-    |--------------------------------------------------------------------------
-    |
-    | Here you can enable or disable specific modules within the package.
-    | Set a module to 'true' to enable it, or 'false' to disable it.
-    |
-    */
-    'modules' => [
-        'meta'         => true,
-        'sitemaps'     => true,
-        'redirections' => true,
-        'schema'       => true,
-        'local_seo'    => true,
-        'image_seo'    => true,
-        'minify_html'  => true,
-    ],
+```bash
+composer dump-autoload
 ```
 
-### Admin Route Security
+## Main URLs
 
-The package admin routes use `config('seo.admin.middleware')`. By default, the package protects admin pages and APIs with Laravel's normal web authentication:
+| URL | Purpose |
+| --- | --- |
+| `/sitemap.xml` | XML sitemap |
+| `/robots.txt` | Robots file |
+| `/llms.txt` | LLM crawler information file |
+| `/.well-known/security.txt` | Security contact file |
+| `/admin/seo-admin/settings` | SEO module settings UI |
+| `/admin/seo-admin/generator` | PageForge bulk page generator |
+| `/{slug}` | Public generated SEO landing page |
+
+## Configuration
+
+The package config is published to:
+
+```text
+config/seo.php
+```
+
+Important sections:
+
+- `modules`: enable or disable package features.
+- `admin.middleware`: middleware for package admin routes.
+- `admin.sidebar`: sidebar auto-install settings.
+- `layout` and `section`: Blade layout and section for package admin pages.
+- `defaults`: site name, title separator, author, publisher, copyright, and default image.
+- `sitemap`: sitemap settings and model classes.
+- `files`: robots, llms, and security text content.
+- `fallbacks`: fallback title and description templates.
+- `verifications`: search engine verification codes.
+- `organization`: Organization and WebSite schema values.
+- `scripts`: custom head/body/footer scripts.
+- `breadcrumbs`: breadcrumb output settings.
+- `links`: external link behavior.
+
+## Admin Route Security
+
+Package admin URLs are protected by `config('seo.admin.middleware')`.
+
+Default:
 
 ```php
 'admin' => [
@@ -71,7 +94,7 @@ The package admin routes use `config('seo.admin.middleware')`. By default, the p
 ],
 ```
 
-For applications that use a dedicated admin guard, update the published `config/seo.php`:
+For an application with a dedicated admin guard:
 
 ```php
 'admin' => [
@@ -79,7 +102,7 @@ For applications that use a dedicated admin guard, update the published `config/
 ],
 ```
 
-If the host dashboard accepts more than one session guard, include each allowed guard:
+For an application that accepts both admin and web sessions:
 
 ```php
 'admin' => [
@@ -87,23 +110,23 @@ If the host dashboard accepts more than one session guard, include each allowed 
 ],
 ```
 
-This protects `/admin/seo-admin/generator`, `/admin/seo-admin/settings`, and related package admin API routes from guest access.
+This protects `/admin/seo-admin/settings`, `/admin/seo-admin/generator`, and related admin API routes from guest access. Public generated pages at `/{slug}` remain visible.
 
-### Admin Sidebar Link
+## Admin Sidebar Link
 
-During `php artisan seo:install`, the package tries to add this include to the host application's admin sidebar:
+During `php artisan seo:install`, the package tries to add this include to the host admin sidebar:
 
 ```blade
 @include('seo::admin.sidebar-link')
 ```
 
-The default target is:
+Default target:
 
 ```text
 resources/views/admin/sidebar.blade.php
 ```
 
-If your app uses a different sidebar file, update the published `config/seo.php`:
+To change or disable this behavior:
 
 ```php
 'admin' => [
@@ -114,30 +137,193 @@ If your app uses a different sidebar file, update the published `config/seo.php`
 ],
 ```
 
-If automatic installation cannot find a writable sidebar file, add the include manually wherever the `SEO Settings` button should appear.
+If the installer cannot find a writable sidebar file, add the include manually where the `SEO Settings` button should appear.
 
-## 🛠️ Usage
+## SEO Tags
 
-To output the generated SEO tags, simply include the provided Blade component in the `<head>` section of your application's layout file (e.g., `resources/views/layouts/app.blade.php`):
+Place the component inside the document `<head>`:
 
 ```blade
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Render SEO Tags here -->
-    <x-seo::tags />
-    
-    <title>My Application</title>
-</head>
-<body>
-    @yield('content')
-</body>
-</html>
+<x-seo::tags />
 ```
 
-## 📄 License
+Manual values:
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+```blade
+<x-seo::tags
+    title="About Us"
+    description="Learn more about our company."
+    keywords="company, services"
+    canonical="{{ url('/about-us') }}"
+    ogTitle="About Our Company"
+    ogDescription="Learn more about our company."
+    image="{{ asset('images/og-image.jpg') }}"
+    author="Nirjon Roy"
+    publisher="Example Publisher"
+    copyright="2026 Example"
+    robots="index, follow"
+/>
+```
+
+You can also pass a model that uses `Nirjon\LaravelSeo\Traits\HasSeo`:
+
+```blade
+<x-seo::tags :model="$product" />
+```
+
+The component outputs title, description, keywords, robots, canonical, author, publisher, copyright, Open Graph, Twitter, hreflang, verification tags, custom scripts, and JSON-LD schema.
+
+## Model SEO
+
+Add the trait to any Eloquent model:
+
+```php
+use Nirjon\LaravelSeo\Traits\HasSeo;
+
+class Product extends Model
+{
+    use HasSeo;
+}
+```
+
+Save SEO data:
+
+```php
+$product->updateSeo([
+    'meta_title' => 'Best Laptop Deals',
+    'meta_description' => 'Find current laptop offers.',
+    'meta_keywords' => 'laptop, deals, electronics',
+    'canonical_url' => url('/products/best-laptop-deals'),
+    'schema_type' => 'Product',
+]);
+```
+
+## Sitemaps
+
+Add models to `config/seo.php`:
+
+```php
+'sitemap' => [
+    'models' => [
+        \App\Models\Product::class,
+    ],
+],
+```
+
+Each model should expose a URL:
+
+```php
+public function getSitemapUrl()
+{
+    return url('/products/' . $this->slug);
+}
+```
+
+Render an HTML sitemap in Blade:
+
+```blade
+@htmlSitemap
+```
+
+PageForge generated pages are included in the sitemap.
+
+## PageForge Bulk Page Generator
+
+Open:
+
+```text
+/admin/seo-admin/generator
+```
+
+PageForge creates landing pages from:
+
+- title template
+- slug template
+- TinyMCE content editor
+- meta title, description, and keywords
+- optional featured image
+- author, publisher, copyright, and site name fields
+- two keyword bundles
+
+Generated pages are stored in `nirjon_seo_generated_pages` and shown at `/{slug}`.
+
+The public generated page view normalizes stored HTML, resolves leftover spintax for legacy rows, emits one `<title>` tag, and passes robots, author, publisher, copyright, image, canonical, and Open Graph values to the SEO component.
+
+## PageForge Placeholders And Spintax
+
+Two keyword bundle placeholders are supported:
+
+```text
+{0}
+{1}
+```
+
+Example:
+
+```text
+Title: {Best|Top|Reliable} {0} services in {1}
+Slug: {0}-services-{1}
+Content: <p>We provide {fast|trusted|professional} {0} services in {1}.</p>
+```
+
+With:
+
+```text
+Bundle 1: Web Development, SEO Audit
+Bundle 2: Dhaka, Sylhet
+```
+
+The generator creates every keyword combination and randomly chooses one spintax option for each generated page.
+
+## Uploaded Images
+
+Featured images are stored on the public disk under:
+
+```text
+storage/app/public/seo-images
+```
+
+Create the public storage link:
+
+```bash
+php artisan storage:link
+```
+
+## Publishing Views
+
+To override package views:
+
+```bash
+php artisan vendor:publish --tag=seo-views
+```
+
+Published views are copied to:
+
+```text
+resources/views/vendor/seo
+```
+
+Laravel loads published views before package views. If you publish views, keep them updated when upgrading the package.
+
+## Useful Commands
+
+```bash
+php artisan seo:install
+php artisan migrate
+php artisan storage:link
+php artisan optimize:clear
+composer dump-autoload
+```
+
+## Troubleshooting
+
+- If admin URLs are visible to guests, check `seo.admin.middleware` and clear caches with `php artisan optimize:clear`.
+- If logged-in admins are redirected to login, use the correct guard, for example `auth:admin` or `auth:admin,web`.
+- If the sidebar link does not appear, add `@include('seo::admin.sidebar-link')` manually to the host sidebar.
+- If generated pages return 404, confirm the package catch-all `/{slug}` route is loaded after specific frontend routes.
+- If uploaded images are not public, run `php artisan storage:link`.
+- If published views show old behavior, update files in `resources/views/vendor/seo`.
+
+## License
+
+The MIT License (MIT). See `LICENSE.md` for details.
