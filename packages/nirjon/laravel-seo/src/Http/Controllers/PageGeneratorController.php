@@ -106,7 +106,9 @@ class PageGeneratorController extends Controller
 
                     $title = $this->parseSpintax(str_replace($placeholders, $replacements, $templateTitle));
                     $slug = $this->parseSpintax(str_replace($placeholders, $replacements, $templateSlug));
-                    $content = $this->parseSpintax(str_replace($placeholders, $replacements, $templateContent));
+                    $content = $this->normalizeGeneratedContent(
+                        $this->parseSpintax(str_replace($placeholders, $replacements, $templateContent))
+                    );
                     $metaTitle = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaTitle));
                     $metaDescription = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaDescription));
                     $metaKeywords = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaKeywords));
@@ -144,7 +146,7 @@ class PageGeneratorController extends Controller
     {
         $page->delete();
 
-        return redirect()->route('seo.generator')->with('status', 'Generated page deleted successfully.');
+        return response()->json(['success' => true]);
     }
 
     private function keywordsFromInput(Request $request, int $bundleIndex, string $primaryInputName, string $fallbackInputName): array
@@ -205,5 +207,10 @@ class PageGeneratorController extends Controller
             },
             $text
         );
+    }
+
+    private function normalizeGeneratedContent(string $content): string
+    {
+        return html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }
