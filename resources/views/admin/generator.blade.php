@@ -135,10 +135,8 @@
             var routes = {
                 pages: @json(route('seo.generator.apiPages')),
                 generate: @json(route('seo.generator.apiGenerate')),
-                destroyPageBase: @json(url('admin/seo-admin/generator/pages'))
+                destroyPageBase: @json(url('admin/seo-admin/generator/api-pages'))
             };
-            var csrfField = @json(csrf_field());
-            var deleteMethodField = @json(method_field('DELETE'));
 
             var editor = null;
 
@@ -230,7 +228,7 @@
                     html += '</tr></thead><tbody class="text-sm">';
 
                     pages.forEach(function (page) {
-                        var viewUrl = '/' + (page.url_slug || '');
+                        var viewUrl = '/' + encodeURIComponent(page.url_slug || '');
                         var date = page.created_at ? new Date(page.created_at).toLocaleString() : 'N/A';
 
                         html += '<tr class="hover:bg-gray-50">';
@@ -241,11 +239,7 @@
                         html += '<td class="border-b px-4 py-2">';
                         html += '<div class="flex items-center gap-3">';
                         html += '<a href="' + viewUrl + '" target="_blank" class="text-blue-600 hover:underline">View</a>';
-                        html += '<form method="POST" action="' + routes.destroyPageBase + '/' + encodeURIComponent(page.id) + '" onsubmit="return confirm(\'Delete this generated page?\')" class="inline">';
-                        html += csrfField;
-                        html += deleteMethodField;
-                        html += '<button type="submit" class="text-red-600 hover:underline">Delete</button>';
-                        html += '</form>';
+                        html += '<button type="button" data-delete-page="' + encodeURIComponent(page.id) + '" class="text-red-600 hover:underline">Delete</button>';
                         html += '</div>';
                         html += '</td>';
                         html += '</tr>';
@@ -255,6 +249,34 @@
                     container.innerHTML = html;
                 } catch (error) {
                     container.innerHTML = '<div class="text-red-500">An error occurred while fetching pages.</div>';
+                }
+            }
+
+            async function deletePage(id) {
+                if (!id || !confirm('Delete this generated page?')) {
+                    return;
+                }
+
+                var csrfToken = document.querySelector('meta[name="csrf-token"]');
+
+                try {
+                    var response = await fetch(routes.destroyPageBase + '/' + encodeURIComponent(id), {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    var data = await response.json();
+
+                    if (response.ok && data.success) {
+                        fetchAndRenderPages();
+                        return;
+                    }
+
+                    alert('Could not delete page.');
+                } catch (error) {
+                    alert('Could not delete page.');
                 }
             }
 
@@ -375,6 +397,16 @@
                 if (generateButton) {
                     generateButton.addEventListener('click', generatePages);
                 }
+
+                document.addEventListener('click', function (event) {
+                    var target = event.target;
+
+                    if (target && target.matches('[data-delete-page]')) {
+                        deletePage(target.getAttribute('data-delete-page'));
+                    }
+                });
+
+                fetchAndRenderPages();
 
             });
         })();

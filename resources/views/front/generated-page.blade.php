@@ -9,7 +9,7 @@
 <body>
     <h1>{{ $page->final_title }}</h1>
     <div>
-        {!! $page->final_content !!}
+        {!! html_entity_decode($page->final_content, ENT_QUOTES | ENT_HTML5, 'UTF-8') !!}
     </div>
 </body>
 </html>
