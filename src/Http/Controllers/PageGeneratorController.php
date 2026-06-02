@@ -35,6 +35,29 @@ class PageGeneratorController extends Controller
         return response()->json($pages);
     }
 
+    public function apiShowPage(SeoGeneratedPage $page)
+    {
+        $page->load('template.bundles.keywords');
+        $template = $page->template;
+        $bundle1 = '';
+        $bundle2 = '';
+
+        if ($template) {
+            $bundles = $template->bundles->values();
+            $bundle1Model = $bundles->get(0);
+            $bundle2Model = $bundles->get(1);
+            $bundle1 = $bundle1Model ? $bundle1Model->keywords->pluck('keyword')->implode(', ') : '';
+            $bundle2 = $bundle2Model ? $bundle2Model->keywords->pluck('keyword')->implode(', ') : '';
+        }
+
+        return response()->json([
+            'page' => $page,
+            'template' => $template,
+            'keyword_bundle_1' => $bundle1,
+            'keyword_bundle_2' => $bundle2,
+        ]);
+    }
+
     /**
      * Generate pages from a template and two keyword bundles.
      */

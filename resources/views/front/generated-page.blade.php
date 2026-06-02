@@ -24,16 +24,21 @@
         $metaTitle = $parseSpintax($page->meta_title ?: $title);
         $metaDescription = $parseSpintax($page->meta_description);
         $metaKeywords = $parseSpintax($page->meta_keywords);
-        $image = $page->featured_image ?: optional($template)->featured_image ?: optional($template)->meta_image ?: config('seo.defaults.default_image');
+        $mediaUrl = function ($path) {
+            $path = (string) $path;
 
-        if ($image && ! \Illuminate\Support\Str::startsWith($image, ['http://', 'https://', '/'])) {
-            $image = asset('storage/' . ltrim($image, '/'));
-        }
+            if ($path === '' || \Illuminate\Support\Str::startsWith($path, ['http://', 'https://', '/'])) {
+                return $path;
+            }
+
+            return route('seo.media', ['path' => ltrim($path, '/')]);
+        };
+
+        $image = $page->featured_image ?: optional($template)->featured_image ?: optional($template)->meta_image ?: config('seo.defaults.default_image');
+        $image = $mediaUrl($image);
 
         $logo = optional($template)->logo_image;
-        if ($logo && ! \Illuminate\Support\Str::startsWith($logo, ['http://', 'https://', '/'])) {
-            $logo = asset('storage/' . ltrim($logo, '/'));
-        }
+        $logo = $mediaUrl($logo);
 
         $primaryColor = optional($template)->primary_color ?: '#111827';
         $accentColor = optional($template)->accent_color ?: '#2563eb';
@@ -118,6 +123,13 @@
             line-height: 1.05;
             letter-spacing: 0;
         }
+        .pf-featured {
+            display: block;
+            width: 100%;
+            max-height: 520px;
+            object-fit: cover;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+        }
         .pf-content {
             padding: 38px 42px 46px;
             font-size: 18px;
@@ -140,11 +152,85 @@
             color: #475569;
             background: #f8fafc;
         }
+        .pf-related {
+            margin-top: 28px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+            padding: 28px;
+        }
+        .pf-related-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .pf-related-kicker {
+            margin: 0 0 4px;
+            color: var(--pf-accent);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .pf-related-title {
+            margin: 0;
+            color: var(--pf-primary);
+            font-size: 24px;
+            line-height: 1.2;
+        }
+        .pf-related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+        .pf-related-card {
+            display: flex;
+            min-height: 132px;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            border-radius: 8px;
+            padding: 18px;
+            color: var(--pf-primary);
+            text-decoration: none;
+            transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+        }
+        .pf-related-card:hover {
+            border-color: var(--pf-accent);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.10);
+            transform: translateY(-2px);
+        }
+        .pf-related-image {
+            width: calc(100% + 36px);
+            height: 118px;
+            margin: -18px -18px 14px;
+            object-fit: cover;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .pf-related-card-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+        .pf-related-card-link {
+            color: var(--pf-accent);
+            font-size: 13px;
+            font-weight: 800;
+        }
         @media (max-width: 640px) {
             .pf-page { padding: 18px 12px 36px; }
             .pf-header { align-items: flex-start; flex-direction: column; }
             .pf-hero, .pf-content { padding: 26px 20px; }
             .pf-content { font-size: 16px; }
+            .pf-related { padding: 22px 18px; }
+            .pf-related-head { align-items: flex-start; flex-direction: column; }
+            .pf-related-grid { grid-template-columns: 1fr; }
         }
         {!! optional($template)->custom_css !!}
     </style>
@@ -166,10 +252,37 @@
                     <p class="pf-eyebrow">{{ $siteName }}</p>
                     <h1 class="pf-title">{{ $title }}</h1>
                 </section>
+                @if($image)
+                    <img src="{{ $image }}" alt="{{ $title }}" class="pf-featured">
+                @endif
                 <section class="pf-content">
                     {!! $content !!}
                 </section>
             </article>
+            @if(isset($relatedPages) && $relatedPages->isNotEmpty())
+                <section class="pf-related" aria-labelledby="pf-related-title">
+                    <div class="pf-related-head">
+                        <div>
+                            <p class="pf-related-kicker">More From {{ $siteName }}</p>
+                            <h2 id="pf-related-title" class="pf-related-title">Related Pages</h2>
+                        </div>
+                    </div>
+                    <div class="pf-related-grid">
+                        @foreach($relatedPages as $relatedPage)
+                            @php
+                                $relatedImage = $mediaUrl($relatedPage->featured_image);
+                            @endphp
+                            <a href="{{ url('/' . $relatedPage->url_slug) }}" class="pf-related-card">
+                                @if($relatedImage)
+                                    <img src="{{ $relatedImage }}" alt="{{ $parseSpintax($relatedPage->final_title) }}" class="pf-related-image">
+                                @endif
+                                <p class="pf-related-card-title">{{ $parseSpintax($relatedPage->final_title) }}</p>
+                                <span class="pf-related-card-link">Read page</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
         </div>
     </main>
 </body>

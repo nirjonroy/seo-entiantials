@@ -8,13 +8,21 @@
         .nirjon-seo-tab-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; }
         .nirjon-seo-editor-wrap .tox-tinymce { border-color: #d1d5db; border-radius: 0.5rem; }
         .nirjon-seo-panel-title { color: #111827; font-size: 0.95rem; font-weight: 800; }
+        .nirjon-seo-modal { display: none; }
+        .nirjon-seo-modal.active { display: flex; }
     </style>
 @endpush
 
 @section(config('seo.section', 'content'))
     <main class="min-h-screen bg-gray-100 p-8">
         <div class="mx-auto max-w-5xl rounded-lg bg-white p-6 shadow-md">
-        <h1 class="mb-6 text-2xl font-bold">PageForge Admin Generator</h1>
+        <div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <h1 class="text-2xl font-bold">PageForge Admin Generator</h1>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" data-open-modal="demo-data-modal" onclick="window.nirjonSeoOpenModal && window.nirjonSeoOpenModal('demo-data-modal')" class="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">Use Demo Data</button>
+                <button type="button" data-open-modal="css-help-modal" onclick="window.nirjonSeoOpenModal && window.nirjonSeoOpenModal('css-help-modal')" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">CSS Classes</button>
+            </div>
+        </div>
 
         <div class="mb-6 flex border-b">
             <button type="button" id="tab-generator" data-nirjon-tab="generator" class="nirjon-seo-tab-btn active px-4 py-2 font-medium text-gray-600 hover:text-blue-600 focus:outline-none">
@@ -158,6 +166,92 @@
             </div>
         </div>
         </div>
+
+        <div id="demo-data-modal" class="nirjon-seo-modal fixed inset-0 z-50 items-center justify-center bg-slate-900/60 p-4">
+            <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+                <div class="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Demo Data</h2>
+                        <p class="text-sm text-slate-500">Fill PageForge with a working demo template.</p>
+                    </div>
+                    <button type="button" data-close-modal onclick="window.nirjonSeoCloseModals && window.nirjonSeoCloseModals()" class="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100">Close</button>
+                </div>
+                <div class="grid gap-3 md:grid-cols-2">
+                    <button type="button" data-demo-type="consultancy" class="rounded-lg border border-slate-200 p-4 text-left hover:border-blue-400 hover:bg-blue-50">
+                        <strong class="block text-slate-900">Consultancy Landing Page</strong>
+                        <span class="text-sm text-slate-500">Professional stress-test template using service + city combinations.</span>
+                        <span class="mt-3 block text-xs font-semibold uppercase tracking-wide text-slate-500">Fills</span>
+                        <span class="mt-1 block text-sm text-slate-600">Template title, slug, content, meta fields, author, publisher, colors, and keyword bundles.</span>
+                        <span class="mt-2 block rounded-md bg-slate-50 p-2 text-xs text-slate-600">Expert {0} Consultancy in {1}<br>Top {0} Services in {1} | BlackTech</span>
+                        <span class="mt-2 block text-xs text-slate-500">Bundles: Web Development, SEO Audit, API Integration + Dhaka, Sylhet</span>
+                    </button>
+                    <button type="button" data-demo-type="restaurant" class="rounded-lg border border-slate-200 p-4 text-left hover:border-blue-400 hover:bg-blue-50">
+                        <strong class="block text-slate-900">Restaurant Menu Design</strong>
+                        <span class="text-sm text-slate-500">Local landing pages with richer visual content.</span>
+                        <span class="mt-3 block text-xs font-semibold uppercase tracking-wide text-slate-500">Fills</span>
+                        <span class="mt-1 block text-sm text-slate-600">Menu-design title, slug, HTML content, SEO metadata, design defaults, and keyword bundles.</span>
+                        <span class="mt-2 block text-xs text-slate-500">Bundles: Restaurant, Cafe, Bistro + Dhaka, Sylhet, Chittagong</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="css-help-modal" class="nirjon-seo-modal fixed inset-0 z-50 items-center justify-center bg-slate-900/60 p-4">
+            <div class="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+                <div class="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Demo CSS Customization</h2>
+                        <p class="text-sm text-slate-500">Use these classes in the Custom CSS field.</p>
+                    </div>
+                    <button type="button" data-close-modal onclick="window.nirjonSeoCloseModals && window.nirjonSeoCloseModals()" class="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100">Close</button>
+                </div>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div class="rounded-lg border border-slate-200 p-4">
+                        <h3 class="mb-2 font-bold text-slate-900">Available Classes</h3>
+                        <ul class="space-y-1 text-sm text-slate-700">
+                            <li><code>.pf-page</code> controls the full generated page background and outer spacing</li>
+                            <li><code>.pf-shell</code> controls the centered page width wrapper</li>
+                            <li><code>.pf-header</code> controls the logo/header row above the card</li>
+                            <li><code>.pf-logo</code> controls uploaded logo size and fit</li>
+                            <li><code>.pf-card</code> controls the main page card border, radius, and shadow</li>
+                            <li><code>.pf-hero</code> controls the title section background and spacing</li>
+                            <li><code>.pf-title</code> controls the generated page H1</li>
+                            <li><code>.pf-featured</code> controls the uploaded featured image</li>
+                            <li><code>.pf-content</code> controls generated HTML body content</li>
+                            <li><code>.pf-related</code> controls the related pages section</li>
+                            <li><code>.pf-related-card</code> controls each related page card</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="mb-2 flex items-center justify-between">
+                            <h3 class="font-bold text-slate-900">Sample CSS</h3>
+                            <button type="button" id="apply-demo-css" class="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700">Use This CSS</button>
+                        </div>
+                        <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 text-xs text-slate-100"><code id="demo-css-code">.pf-card {
+  border-radius: 6px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+}
+
+.pf-hero {
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+}
+
+.pf-featured {
+  aspect-ratio: 16 / 7;
+}
+
+.pf-content h3 {
+  border-left: 4px solid var(--pf-accent);
+  padding-left: 14px;
+}
+
+.pf-related-card {
+  background: #f8fafc;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 @endsection
 
@@ -165,11 +259,47 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
     <script>
         (function () {
+            function openModal(id) {
+                closeModals();
+                var modal = document.getElementById(id);
+                if (modal) {
+                    modal.classList.add('active');
+                    modal.setAttribute('aria-hidden', 'false');
+                }
+            }
+
+            function closeModals() {
+                document.querySelectorAll('.nirjon-seo-modal').forEach(function (modal) {
+                    modal.classList.remove('active');
+                    modal.setAttribute('aria-hidden', 'true');
+                });
+            }
+
+            window.nirjonSeoOpenModal = openModal;
+            window.nirjonSeoCloseModals = closeModals;
+
+            document.addEventListener('click', function (event) {
+                var opener = event.target.closest('[data-open-modal]');
+                if (opener) {
+                    event.preventDefault();
+                    openModal(opener.getAttribute('data-open-modal'));
+                    return;
+                }
+
+                if (event.target.closest('[data-close-modal]')) {
+                    event.preventDefault();
+                    closeModals();
+                }
+            });
+        })();
+
+        (function () {
             'use strict';
 
             var routes = {
                 pages: @json(route('seo.generator.apiPages')),
                 generate: @json(route('seo.generator.apiGenerate')),
+                pageBase: @json(url('admin/seo-admin/generator/api-pages')),
                 destroyPageBase: @json(url('admin/seo-admin/generator/api-pages'))
             };
 
@@ -229,6 +359,123 @@
                 }
             }
 
+            function setValue(id, value) {
+                var element = byId(id);
+                if (element) {
+                    element.value = value || '';
+                }
+            }
+
+            function setEditorHtml(value) {
+                if (editor && typeof editor.setContent === 'function') {
+                    editor.setContent(value || '');
+                    return;
+                }
+
+                setValue('nirjon_seo_editor', value || '');
+            }
+
+            function openModal(id) {
+                window.nirjonSeoOpenModal(id);
+            }
+
+            function closeModals() {
+                window.nirjonSeoCloseModals();
+            }
+
+            function demoPayload(type) {
+                if (type === 'restaurant') {
+                    return {
+                        templateTitle: '{Premium|Modern|Creative} {0} Menu Design in {1}',
+                        templateSlug: '{0}-menu-design-{1}',
+                        content: '<h3>Professional {0} Menu Design in {1}</h3><p>Your menu is often the first sales tool your customer sees. We create <strong>{premium|modern|conversion-focused}</strong> menu designs that help restaurants, cafes, and food brands present offers clearly.</p><p>Our team combines layout, typography, food imagery, and local SEO structure so your {0} business in <strong>{1}</strong> looks polished online.</p>',
+                        meta_title: '{0} Menu Design in {1} | BlackTech',
+                        meta_description: 'Professional {0} menu design services in {1}. Get a polished restaurant menu and SEO-ready landing page.',
+                        meta_keywords: '{0}, menu design, restaurant branding, {1}',
+                        bundle1: 'Restaurant, Cafe, Bistro',
+                        bundle2: 'Dhaka, Sylhet, Chittagong'
+                    };
+                }
+
+                return {
+                    templateTitle: 'Expert {0} Consultancy in {1}',
+                    templateSlug: 'expert-{0}-consultancy-{1}',
+                    content: '<h3>Need {0} Services in {1}?</h3><p>BlackTech Consultancy helps growing businesses plan, build, and optimize professional <strong>{0}</strong> solutions for teams in <strong>{1}</strong> and beyond.</p><p>From discovery and implementation to reporting and continuous improvement, our consultants focus on measurable outcomes, clean delivery, and long-term scalability.</p><p>Get the {premium|fast|reliable} experience your project deserves.</p>',
+                    meta_title: 'Top {0} Services in {1} | BlackTech',
+                    meta_description: 'Hire expert {0} developers in {1} for your business growth. Professional services by BlackTech.',
+                    meta_keywords: '{0}, {1}, expert services, BlackTech',
+                    bundle1: 'Web Development, SEO Audit, API Integration',
+                    bundle2: 'Dhaka, Sylhet'
+                };
+            }
+
+            function fillDemoData(type) {
+                var demo = demoPayload(type);
+                setValue('templateTitle', demo.templateTitle);
+                setValue('templateSlug', demo.templateSlug);
+                setEditorHtml(demo.content);
+                setValue('meta_title', demo.meta_title);
+                setValue('meta_description', demo.meta_description);
+                setValue('meta_keywords', demo.meta_keywords);
+                setValue('author', 'Nirjon Roy');
+                setValue('publisher', 'BlackTech Consultancy');
+                setValue('copyright', '\u00a9 2026 BlackTech Consultancy');
+                setValue('site_name', 'BlackTech Consultancy');
+                setValue('bundle1', demo.bundle1);
+                setValue('bundle2', demo.bundle2);
+                setValue('primary_color', '#111827');
+                setValue('accent_color', '#2563eb');
+                setValue('background_color', '#f8fafc');
+                setValue('text_color', '#1f2937');
+                setValue('font_family', 'Inter, Arial, sans-serif');
+                setValue('container_width', '960px');
+                closeModals();
+                switchTab('generator');
+            }
+
+            async function editPage(id) {
+                if (!id) {
+                    return;
+                }
+
+                try {
+                    var response = await fetch(routes.pageBase + '/' + encodeURIComponent(id), {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    var data = await response.json();
+
+                    if (!response.ok || !data.template) {
+                        alert('Could not load page data for editing.');
+                        return;
+                    }
+
+                    var template = data.template;
+                    setValue('templateTitle', template.title_structure || data.page.final_title || '');
+                    setValue('templateSlug', template.slug_structure || data.page.url_slug || '');
+                    setEditorHtml(template.content || data.page.final_content || '');
+                    setValue('meta_title', template.meta_title || data.page.meta_title || '');
+                    setValue('meta_description', template.meta_description || data.page.meta_description || '');
+                    setValue('meta_keywords', template.meta_keywords || data.page.meta_keywords || '');
+                    setValue('author', template.author || '');
+                    setValue('publisher', template.publisher || '');
+                    setValue('copyright', template.copyright || '');
+                    setValue('site_name', template.site_name || '');
+                    setValue('primary_color', template.primary_color || '#111827');
+                    setValue('accent_color', template.accent_color || '#2563eb');
+                    setValue('background_color', template.background_color || '#f8fafc');
+                    setValue('text_color', template.text_color || '#1f2937');
+                    setValue('font_family', template.font_family || 'Inter, Arial, sans-serif');
+                    setValue('container_width', template.container_width || '960px');
+                    setValue('custom_css', template.custom_css || '');
+                    setValue('bundle1', data.keyword_bundle_1 || '');
+                    setValue('bundle2', data.keyword_bundle_2 || '');
+                    switchTab('generator');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } catch (error) {
+                    alert('Could not load page data for editing.');
+                }
+            }
+
             async function fetchAndRenderPages() {
                 var container = byId('generatedPagesContainer');
 
@@ -274,6 +521,7 @@
                         html += '<td class="border-b px-4 py-2">';
                         html += '<div class="flex items-center gap-3">';
                         html += '<a href="' + viewUrl + '" target="_blank" class="text-blue-600 hover:underline">View</a>';
+                        html += '<button type="button" data-edit-page="' + encodeURIComponent(page.id) + '" class="text-amber-600 hover:underline">Edit</button>';
                         html += '<button type="button" data-delete-page="' + encodeURIComponent(page.id) + '" class="text-red-600 hover:underline">Delete</button>';
                         html += '</div>';
                         html += '</td>';
@@ -452,9 +700,39 @@
                 }
 
                 document.addEventListener('click', function (event) {
-                    var target = event.target;
+                    var target = event.target.closest('[data-open-modal], [data-close-modal], [data-demo-type], #apply-demo-css, [data-edit-page], [data-delete-page]');
 
-                    if (target && target.matches('[data-delete-page]')) {
+                    if (!target) {
+                        return;
+                    }
+
+                    if (target.matches('[data-open-modal]')) {
+                        openModal(target.getAttribute('data-open-modal'));
+                        return;
+                    }
+
+                    if (target.matches('[data-close-modal]')) {
+                        closeModals();
+                        return;
+                    }
+
+                    if (target.matches('[data-demo-type]')) {
+                        fillDemoData(target.getAttribute('data-demo-type'));
+                        return;
+                    }
+
+                    if (target.matches('#apply-demo-css')) {
+                        setValue('custom_css', byId('demo-css-code') ? byId('demo-css-code').textContent : '');
+                        closeModals();
+                        return;
+                    }
+
+                    if (target.matches('[data-edit-page]')) {
+                        editPage(target.getAttribute('data-edit-page'));
+                        return;
+                    }
+
+                    if (target.matches('[data-delete-page]')) {
                         deletePage(target.getAttribute('data-delete-page'));
                     }
                 });
