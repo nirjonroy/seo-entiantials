@@ -55,10 +55,65 @@ If the package is not published on Packagist yet, add the GitHub repository to t
 Then install or update the dependency:
 
 ```bash
-composer update nirjon/laravel-seo
+composer require nirjon/laravel-seo:dev-package-release -W
 ```
 
 The GitHub branch URL `https://github.com/nirjonroy/seo-entiantials/tree/package-release` is usable as a source branch because the branch contains the package `composer.json` at the repository root. In Composer, require the branch as `dev-package-release`; do not put `/tree/package-release` in the repository URL.
+
+### Guaranteed GitHub Branch Install
+
+If Composer cannot find `nirjon/laravel-seo` from the normal VCS repository, use Composer's inline package repository format in the host application's root `composer.json`.
+
+This is useful while the package is not published on Packagist or when Composer keeps resolving the GitHub repository incorrectly.
+
+```json
+{
+    "repositories": [
+        {
+            "type": "package",
+            "package": {
+                "name": "nirjon/laravel-seo",
+                "version": "dev-package-release",
+                "source": {
+                    "url": "https://github.com/nirjonroy/seo-entiantials.git",
+                    "type": "git",
+                    "reference": "package-release"
+                },
+                "require": {
+                    "php": "^8.0",
+                    "illuminate/support": "^9.0|^10.0|^11.0|^12.0"
+                },
+                "autoload": {
+                    "psr-4": {
+                        "Nirjon\\LaravelSeo\\": "src/"
+                    }
+                },
+                "extra": {
+                    "laravel": {
+                        "providers": [
+                            "Nirjon\\LaravelSeo\\SEOServiceProvider"
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "require": {
+        "nirjon/laravel-seo": "dev-package-release"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
+```
+
+Then run:
+
+```bash
+composer clear-cache
+composer require nirjon/laravel-seo:dev-package-release -W
+```
+
+After installation, continue with the package installer commands below.
 
 For production, the better solution is to create a tagged release such as `v1.0.0` and require it with a stable constraint:
 
