@@ -123,7 +123,7 @@ Important sections:
 
 ## Admin Route Security
 
-Package admin URLs are protected by `config('seo.admin.middleware')`.
+Package admin URLs are protected by `config('seo.admin.middleware')` and a built-in package guard that blocks guests even if a host project accidentally removes `auth` from the published config.
 
 Default:
 
@@ -150,6 +150,8 @@ For an application that accepts both admin and web sessions:
 ```
 
 This protects `/admin/seo-admin/settings`, `/admin/seo-admin/generator`, and related admin API routes from guest access. Public generated pages at `/{slug}` remain visible.
+
+If a project has no named `login` route, unauthenticated users receive `403 Forbidden`. If a `login` route exists, guests are redirected there.
 
 ## Admin Sidebar Link
 
