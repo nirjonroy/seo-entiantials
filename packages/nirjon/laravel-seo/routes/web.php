@@ -4,8 +4,14 @@ use Illuminate\Support\Facades\Route;
 use Nirjon\LaravelSeo\Http\Controllers\GeneratedPageController;
 use Nirjon\LaravelSeo\Http\Controllers\PageGeneratorController;
 use Nirjon\LaravelSeo\Http\Controllers\SeoSettingsController;
+use Nirjon\LaravelSeo\Http\Middleware\EnsureSeoAdminAuthenticated;
 
-Route::middleware(config('seo.admin.middleware', ['web', 'auth']))->prefix('admin/seo-admin')->group(function () {
+$adminMiddleware = array_values(array_unique(array_merge(
+    (array) config('seo.admin.middleware', ['web', 'auth']),
+    [EnsureSeoAdminAuthenticated::class]
+)));
+
+Route::middleware($adminMiddleware)->prefix('admin/seo-admin')->group(function () {
     Route::get('generator', [PageGeneratorController::class, 'index'])->name('seo.generator');
     Route::get('generator/api-pages', [PageGeneratorController::class, 'apiGetPages'])->name('seo.generator.apiPages');
     Route::get('generator/api-pages/{page}', [PageGeneratorController::class, 'apiShowPage'])->name('seo.generator.apiShowPage');
