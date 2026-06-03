@@ -25,6 +25,3 @@ Route::middleware($adminMiddleware)->prefix('admin/seo-admin')->group(function (
 Route::middleware(['web'])->get('seo-media/{path}', [GeneratedPageController::class, 'media'])
     ->where('path', '.*')
     ->name('seo.media');
-
-Route::middleware(['web'])->get('{slug}', [GeneratedPageController::class, 'show'])
-    ->where('slug', '^(?!admin(?:/|$)|api(?:/|$)|seo-media(?:/|$)|storage(?:/|$)|uploads(?:/|$)|assets(?:/|$)|css(?:/|$)|js(?:/|$)|images(?:/|$)|sitemap\.xml$|robots\.txt$|llms\.txt$).+');

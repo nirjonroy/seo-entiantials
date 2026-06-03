@@ -362,7 +362,7 @@ The PageForge admin UI includes:
 - an `Edit` button in the generated pages table that loads the page template back into the form
 - `View` and `Delete` actions for generated pages
 
-The public generated page view normalizes stored HTML, resolves leftover spintax for legacy rows, emits one `<title>` tag, and passes robots, author, publisher, copyright, image, canonical, and Open Graph values to the SEO component. When a featured image is uploaded, it is displayed visually below the hero title and reused in related-page cards. The package also exposes `/seo-media/{path}` for PageForge uploads, so generated page logos and featured images still render even before a host app creates a public storage symlink. The view also shows related generated pages below the main content, preferring pages from the same template and falling back to recent generated pages.
+The public generated page view normalizes stored HTML, resolves leftover spintax for legacy rows, emits one `<title>` tag, and passes robots, author, publisher, copyright, image, canonical, and Open Graph values to the SEO component. When a featured image is uploaded, it is displayed visually below the hero title and reused in related-page cards. The package also exposes `/seo-media/{path}` for PageForge uploads, so generated page logos and featured images still render even before a host app creates a public storage symlink. The generated-page catch-all route is registered after the host application's routes, so normal app pages such as `/about-us` and `/contact` keep priority over PageForge slugs. The view also shows related generated pages below the main content, preferring pages from the same template and falling back to recent generated pages.
 
 Admins can customize generated page presentation from the PageForge form:
 
@@ -444,7 +444,8 @@ composer dump-autoload
 - If admin URLs are visible to guests, check `seo.admin.middleware` and clear caches with `php artisan optimize:clear`.
 - If logged-in admins are redirected to login, use the correct guard, for example `auth:admin` or `auth:admin,web`.
 - If the sidebar link does not appear, add `@include('seo::admin.sidebar-link')` manually to the host sidebar.
-- If generated pages return 404, confirm the package catch-all `/{slug}` route is loaded after specific frontend routes.
+- If existing frontend pages such as `/about-us` or `/contact` return 404 after installation, run `php artisan optimize:clear` so the package catch-all route is rebuilt after the host app routes.
+- If a PageForge generated page returns 404, confirm a matching generated page exists in `nirjon_seo_generated_pages.url_slug`.
 - If uploaded images are not public, run `php artisan storage:link`.
 - If published views show old behavior, update files in `resources/views/vendor/seo`.
 
