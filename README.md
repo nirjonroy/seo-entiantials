@@ -115,6 +115,16 @@ composer require nirjon/laravel-seo:dev-package-release -W
 
 After installation, continue with the package installer commands below.
 
+Full copy-paste install sequence:
+
+```bash
+composer clear-cache
+composer require nirjon/laravel-seo:dev-package-release -W
+php artisan seo:install
+php artisan vendor:publish --tag=seo-views --force
+php artisan optimize:clear
+```
+
 For production, the better solution is to create a tagged release such as `v1.0.0` and require it with a stable constraint:
 
 ```json
