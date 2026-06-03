@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Nirjon\LaravelSeo\View\Components\SeoTags;
 use Nirjon\LaravelSeo\View\Components\Breadcrumbs;
-use Nirjon\LaravelSeo\Http\Controllers\GeneratedPageController;
 use Nirjon\LaravelSeo\Http\Controllers\SitemapController;
 use Nirjon\LaravelSeo\Http\Controllers\SeoFilesController;
 
@@ -48,13 +47,6 @@ class SEOServiceProvider extends ServiceProvider
         Route::get('/llms.txt', [SeoFilesController::class, 'llms']);
         Route::get('/.well-known/security.txt', [SeoFilesController::class, 'security']);
 
-        $this->app->booted(function () {
-            Route::middleware(['web'])
-                ->get('{slug}', [GeneratedPageController::class, 'show'])
-                ->where('slug', '^(?!admin(?:/|$)|api(?:/|$)|seo-media(?:/|$)|storage(?:/|$)|uploads(?:/|$)|assets(?:/|$)|css(?:/|$)|js(?:/|$)|images(?:/|$)|sitemap\.xml$|robots\.txt$|llms\.txt$).+')
-                ->name('seo.generated.show');
-        });
-
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
         $kernel->prependMiddleware(\Nirjon\LaravelSeo\Http\Middleware\HandleSeoRedirects::class);
 
@@ -65,6 +57,10 @@ class SEOServiceProvider extends ServiceProvider
         // Register the SEO 404 Monitor Middleware
         $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
             ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\Seo404MonitorMiddleware::class);
+
+        // Render PageForge generated pages only after the host app returns 404.
+        $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
+            ->pushMiddleware(\Nirjon\LaravelSeo\Http\Middleware\GeneratedPageFallbackMiddleware::class);
 
         // Register the Auto Image SEO Middleware
         $this->app->make(\Illuminate\Contracts\Http\Kernel::class)
