@@ -40,6 +40,14 @@ return new class extends Migration
             if (! Schema::hasColumn('nirjon_seo_templates', 'custom_css')) {
                 $table->text('custom_css')->nullable();
             }
+
+            if (! Schema::hasColumn('nirjon_seo_templates', 'header_css')) {
+                $table->longText('header_css')->nullable();
+            }
+
+            if (! Schema::hasColumn('nirjon_seo_templates', 'header_js')) {
+                $table->longText('header_js')->nullable();
+            }
         });
     }
 
@@ -55,6 +63,8 @@ return new class extends Migration
                 Schema::hasColumn('nirjon_seo_templates', 'font_family') ? 'font_family' : null,
                 Schema::hasColumn('nirjon_seo_templates', 'container_width') ? 'container_width' : null,
                 Schema::hasColumn('nirjon_seo_templates', 'custom_css') ? 'custom_css' : null,
+                Schema::hasColumn('nirjon_seo_templates', 'header_css') ? 'header_css' : null,
+                Schema::hasColumn('nirjon_seo_templates', 'header_js') ? 'header_js' : null,
             ]);
 
             if (! empty($columns)) {

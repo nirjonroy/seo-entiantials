@@ -30,6 +30,8 @@ class SeoTemplate extends Model
         'font_family',
         'container_width',
         'custom_css',
+        'header_css',
+        'header_js',
         'is_active',
     ];
 

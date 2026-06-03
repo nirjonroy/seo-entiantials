@@ -105,6 +105,8 @@ class PageGeneratorController extends Controller
                     'font_family' => $request->input('fontFamily', 'Inter, Arial, sans-serif'),
                     'container_width' => $request->input('containerWidth', '960px'),
                     'custom_css' => $request->input('customCss', ''),
+                    'header_css' => $request->input('headerCss', ''),
+                    'header_js' => $request->input('headerJs', ''),
                 ]
             );
 
