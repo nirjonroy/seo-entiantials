@@ -2,42 +2,30 @@
 
 namespace Nirjon\LaravelSeo\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Nirjon\LaravelSeo\Models\SeoTemplate;
-use Nirjon\LaravelSeo\Models\SeoKeywordBundle;
-use Nirjon\LaravelSeo\Models\SeoKeyword;
 use Nirjon\LaravelSeo\Models\SeoGeneratedPage;
+use Nirjon\LaravelSeo\Models\SeoKeyword;
+use Nirjon\LaravelSeo\Models\SeoKeywordBundle;
+use Nirjon\LaravelSeo\Models\SeoTemplate;
 
 class PageGeneratorController extends Controller
 {
-    /**
-     * Show the generator admin UI.
-     *
-     * @return \Illuminate\View\View
-     */
     public function index()
     {
         return view('seo::admin.generator');
     }
 
-    /**
-     * Get generated pages for the UI.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function apiGetPages()
     {
-        $pages = SeoGeneratedPage::latest()->take(100)->get();
-
-        return response()->json($pages);
+        return response()->json(SeoGeneratedPage::latest()->take(100)->get());
     }
 
-    public function apiShowPage(SeoGeneratedPage $page)
+    public function apiShowPage($id)
     {
-        $page->load('template.bundles.keywords');
+        $page = SeoGeneratedPage::with('template.bundles.keywords')->findOrFail($id);
         $template = $page->template;
         $bundle1 = '';
         $bundle2 = '';
@@ -58,25 +46,15 @@ class PageGeneratorController extends Controller
         ]);
     }
 
-    /**
-     * Generate pages from a template and two keyword bundles.
-     */
     public function apiGenerate(Request $request)
     {
-        $bundle1Values = array_values(array_filter(array_map(
-            fn ($keyword) => trim($keyword),
-            explode(',', (string) $request->input('keyword_bundle_1', $request->input('bundle1', '')))
-        )));
-
-        $bundle2Values = array_values(array_filter(array_map(
-            fn ($keyword) => trim($keyword),
-            explode(',', (string) $request->input('keyword_bundle_2', $request->input('bundle2', '')))
-        )));
+        $bundle1Values = $this->keywordsFromInput($request, 0, 'keyword_bundle_1', 'bundle1');
+        $bundle2Values = $this->keywordsFromInput($request, 1, 'keyword_bundle_2', 'bundle2');
 
         if (empty($bundle1Values) || empty($bundle2Values)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Keyword Bundle 1 and Keyword Bundle 2 are required.'
+                'message' => 'Keyword Bundle 1 and Keyword Bundle 2 are required.',
             ], 422);
         }
 
@@ -138,21 +116,13 @@ class PageGeneratorController extends Controller
             $template->bundles()->sync($bundleIds);
             $template->generatedPages()->delete();
 
-            $placeholders = ['{0}', '{1}'];
             $generatedCount = 0;
 
             foreach ($bundle1Values as $keyword1) {
                 foreach ($bundle2Values as $keyword2) {
                     $replacements = [$keyword1, $keyword2];
 
-                    $title = $this->parseSpintax(str_replace($placeholders, $replacements, $templateTitle));
-                    $slug = $this->parseSpintax(str_replace($placeholders, $replacements, $templateSlug));
-                    $content = $this->normalizeGeneratedContent(
-                        $this->parseSpintax(str_replace($placeholders, $replacements, $templateContent))
-                    );
-                    $metaTitle = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaTitle));
-                    $metaDescription = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaDescription));
-                    $metaKeywords = $this->parseSpintax(str_replace($placeholders, $replacements, $templateMetaKeywords));
+                    $slug = $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateSlug));
                     $urlSlug = Str::slug($slug);
 
                     if (empty($urlSlug)) {
@@ -162,11 +132,13 @@ class PageGeneratorController extends Controller
                     SeoGeneratedPage::create([
                         'template_id' => $template->id,
                         'url_slug' => $urlSlug,
-                        'final_title' => $title,
-                        'final_content' => $content,
-                        'meta_title' => $metaTitle,
-                        'meta_description' => $metaDescription,
-                        'meta_keywords' => $metaKeywords,
+                        'final_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateTitle)),
+                        'final_content' => $this->normalizeGeneratedContent(
+                            $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateContent))
+                        ),
+                        'meta_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaTitle)),
+                        'meta_description' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaDescription)),
+                        'meta_keywords' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaKeywords)),
                         'featured_image' => $metaImage,
                     ]);
 
@@ -179,13 +151,13 @@ class PageGeneratorController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $generatedCount . ' generated page(s) created successfully.'
+            'message' => $generatedCount . ' generated page(s) created successfully.',
         ]);
     }
 
-    public function destroy(SeoGeneratedPage $page)
+    public function destroy($id)
     {
-        $page->delete();
+        SeoGeneratedPage::findOrFail($id)->delete();
 
         return response()->json(['success' => true]);
     }
@@ -201,7 +173,7 @@ class PageGeneratorController extends Controller
         $bundlesInput = $request->input('bundles');
         $bundles = is_string($bundlesInput) ? json_decode($bundlesInput, true) : [];
 
-        if (!is_array($bundles) || !isset($bundles[$bundleIndex]['keywords']) || !is_array($bundles[$bundleIndex]['keywords'])) {
+        if (! is_array($bundles) || ! isset($bundles[$bundleIndex]['keywords']) || ! is_array($bundles[$bundleIndex]['keywords'])) {
             return [];
         }
 

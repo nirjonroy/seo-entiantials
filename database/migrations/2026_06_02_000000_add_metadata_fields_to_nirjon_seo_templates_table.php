@@ -6,6 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+<<<<<<< HEAD
+    public function up(): void
+    {
+        Schema::table('nirjon_seo_templates', function (Blueprint $table) {
+            if (! Schema::hasColumn('nirjon_seo_templates', 'meta_image')) {
+                $table->string('meta_image')->nullable();
+            }
+
+            if (! Schema::hasColumn('nirjon_seo_templates', 'author')) {
+                $table->string('author')->nullable();
+            }
+
+            if (! Schema::hasColumn('nirjon_seo_templates', 'publisher')) {
+                $table->string('publisher')->nullable();
+            }
+
+            if (! Schema::hasColumn('nirjon_seo_templates', 'copyright')) {
+                $table->string('copyright')->nullable();
+            }
+
+            if (! Schema::hasColumn('nirjon_seo_templates', 'site_name')) {
+=======
     /**
      * Run the migrations.
      */
@@ -29,14 +51,18 @@ return new class extends Migration
             }
 
             if (!Schema::hasColumn('nirjon_seo_templates', 'site_name')) {
+>>>>>>> 37a31d9cbbb998ccf1b629ce23cddc17edc982e4
                 $table->string('site_name')->nullable();
             }
         });
     }
 
+<<<<<<< HEAD
+=======
     /**
      * Reverse the migrations.
      */
+>>>>>>> 37a31d9cbbb998ccf1b629ce23cddc17edc982e4
     public function down(): void
     {
         Schema::table('nirjon_seo_templates', function (Blueprint $table) {
@@ -48,7 +74,11 @@ return new class extends Migration
                 Schema::hasColumn('nirjon_seo_templates', 'site_name') ? 'site_name' : null,
             ]);
 
+<<<<<<< HEAD
+            if (! empty($columns)) {
+=======
             if (!empty($columns)) {
+>>>>>>> 37a31d9cbbb998ccf1b629ce23cddc17edc982e4
                 $table->dropColumn($columns);
             }
         });

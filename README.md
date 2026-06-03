@@ -55,75 +55,10 @@ If the package is not published on Packagist yet, add the GitHub repository to t
 Then install or update the dependency:
 
 ```bash
-composer require nirjon/laravel-seo:dev-package-release -W
+composer update nirjon/laravel-seo
 ```
 
 The GitHub branch URL `https://github.com/nirjonroy/seo-entiantials/tree/package-release` is usable as a source branch because the branch contains the package `composer.json` at the repository root. In Composer, require the branch as `dev-package-release`; do not put `/tree/package-release` in the repository URL.
-
-### Guaranteed GitHub Branch Install
-
-If Composer cannot find `nirjon/laravel-seo` from the normal VCS repository, use Composer's inline package repository format in the host application's root `composer.json`.
-
-This is useful while the package is not published on Packagist or when Composer keeps resolving the GitHub repository incorrectly.
-
-```json
-{
-    "repositories": [
-        {
-            "type": "package",
-            "package": {
-                "name": "nirjon/laravel-seo",
-                "version": "dev-package-release",
-                "source": {
-                    "url": "https://github.com/nirjonroy/seo-entiantials.git",
-                    "type": "git",
-                    "reference": "package-release"
-                },
-                "require": {
-                    "php": "^8.0",
-                    "illuminate/support": "^9.0|^10.0|^11.0|^12.0"
-                },
-                "autoload": {
-                    "psr-4": {
-                        "Nirjon\\LaravelSeo\\": "src/"
-                    }
-                },
-                "extra": {
-                    "laravel": {
-                        "providers": [
-                            "Nirjon\\LaravelSeo\\SEOServiceProvider"
-                        ]
-                    }
-                }
-            }
-        }
-    ],
-    "require": {
-        "nirjon/laravel-seo": "dev-package-release"
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
-}
-```
-
-Then run:
-
-```bash
-composer clear-cache
-composer require nirjon/laravel-seo:dev-package-release -W
-```
-
-After installation, continue with the package installer commands below.
-
-Full copy-paste install sequence:
-
-```bash
-composer clear-cache
-composer require nirjon/laravel-seo:dev-package-release -W
-php artisan seo:install
-php artisan vendor:publish --tag=seo-views --force
-php artisan optimize:clear
-```
 
 For production, the better solution is to create a tagged release such as `v1.0.0` and require it with a stable constraint:
 
@@ -362,7 +297,7 @@ The PageForge admin UI includes:
 - an `Edit` button in the generated pages table that loads the page template back into the form
 - `View` and `Delete` actions for generated pages
 
-The public generated page view normalizes stored HTML, resolves leftover spintax for legacy rows, emits one `<title>` tag, and passes robots, author, publisher, copyright, image, canonical, and Open Graph values to the SEO component. When a featured image is uploaded, it is displayed visually below the hero title and reused in related-page cards. The package also exposes `/seo-media/{path}` for PageForge uploads, so generated page logos and featured images still render even before a host app creates a public storage symlink. The generated-page catch-all route is registered after the host application's routes, so normal app pages such as `/about-us` and `/contact` keep priority over PageForge slugs. The view also shows related generated pages below the main content, preferring pages from the same template and falling back to recent generated pages.
+The public generated page view normalizes stored HTML, resolves leftover spintax for legacy rows, emits one `<title>` tag, and passes robots, author, publisher, copyright, image, canonical, and Open Graph values to the SEO component. When a featured image is uploaded, it is displayed visually below the hero title and reused in related-page cards. The package also exposes `/seo-media/{path}` for PageForge uploads, so generated page logos and featured images still render even before a host app creates a public storage symlink. The view also shows related generated pages below the main content, preferring pages from the same template and falling back to recent generated pages.
 
 Admins can customize generated page presentation from the PageForge form:
 
@@ -444,8 +379,7 @@ composer dump-autoload
 - If admin URLs are visible to guests, check `seo.admin.middleware` and clear caches with `php artisan optimize:clear`.
 - If logged-in admins are redirected to login, use the correct guard, for example `auth:admin` or `auth:admin,web`.
 - If the sidebar link does not appear, add `@include('seo::admin.sidebar-link')` manually to the host sidebar.
-- If existing frontend pages such as `/about-us` or `/contact` return 404 after installation, run `php artisan optimize:clear` so the package catch-all route is rebuilt after the host app routes.
-- If a PageForge generated page returns 404, confirm a matching generated page exists in `nirjon_seo_generated_pages.url_slug`.
+- If generated pages return 404, confirm the package catch-all `/{slug}` route is loaded after specific frontend routes.
 - If uploaded images are not public, run `php artisan storage:link`.
 - If published views show old behavior, update files in `resources/views/vendor/seo`.
 
