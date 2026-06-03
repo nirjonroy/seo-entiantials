@@ -240,9 +240,7 @@
         </style>
     @endif
     @if(optional($template)->header_js)
-        <script id="pageforge-header-js">
-            {!! optional($template)->header_js !!}
-        </script>
+        {!! optional($template)->header_js !!}
     @endif
 </head>
 <body>

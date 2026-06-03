@@ -125,8 +125,8 @@
                             <textarea id="header_css" rows="5" class="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 font-mono text-sm shadow-sm" placeholder="body { scroll-behavior: smooth; }"></textarea>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700">Generated Page Header JS</label>
-                            <textarea id="header_js" rows="5" class="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 font-mono text-sm shadow-sm" placeholder="console.log('Generated page loaded');"></textarea>
+                            <label class="block text-sm font-medium text-gray-700">Generated Page Header Scripts</label>
+                            <textarea id="header_js" rows="6" class="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 font-mono text-sm shadow-sm" placeholder="<script>&#10;console.log('Generated page loaded');&#10;</script>"></textarea>
                         </div>
                     </div>
                 </div>
