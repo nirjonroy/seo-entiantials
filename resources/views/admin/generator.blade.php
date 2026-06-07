@@ -321,6 +321,15 @@
                 return element ? element.value : '';
             }
 
+            function escapeHtml(value) {
+                return String(value === null || value === undefined ? '' : value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
             function switchTab(tabName) {
                 document.querySelectorAll('.nirjon-seo-tab-content').forEach(function (element) {
                     element.classList.remove('active');
@@ -509,8 +518,15 @@
                         return;
                     }
 
-                    var html = '<div class="overflow-x-auto"><table class="min-w-full border border-gray-200 bg-white">';
+                    var html = '<div class="mb-3 flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">';
+                    html += '<div class="text-sm font-medium text-gray-600"><span id="selected-pages-count">0</span> selected</div>';
+                    html += '<div class="flex flex-wrap gap-2">';
+                    html += '<button type="button" data-bulk-view-pages class="rounded-md border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50">View Selected</button>';
+                    html += '<button type="button" data-bulk-delete-pages class="rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Delete Selected</button>';
+                    html += '</div></div>';
+                    html += '<div class="overflow-x-auto"><table class="min-w-full border border-gray-200 bg-white">';
                     html += '<thead><tr class="bg-gray-100 text-left text-sm uppercase tracking-wider text-gray-600">';
+                    html += '<th class="w-12 border-b px-4 py-2"><input type="checkbox" data-select-all-pages aria-label="Select all generated pages" class="rounded border-gray-300"></th>';
                     html += '<th class="border-b px-4 py-2">ID</th>';
                     html += '<th class="border-b px-4 py-2">Title</th>';
                     html += '<th class="border-b px-4 py-2">Slug</th>';
@@ -521,17 +537,19 @@
                     pages.forEach(function (page) {
                         var viewUrl = '/' + encodeURIComponent(page.url_slug || '');
                         var date = page.created_at ? new Date(page.created_at).toLocaleString() : 'N/A';
+                        var pageId = page.id || '';
 
                         html += '<tr class="hover:bg-gray-50">';
-                        html += '<td class="border-b px-4 py-2">' + (page.id || '') + '</td>';
-                        html += '<td class="border-b px-4 py-2 font-medium">' + (page.final_title || '') + '</td>';
-                        html += '<td class="border-b px-4 py-2 text-gray-500">' + (page.url_slug || '') + '</td>';
-                        html += '<td class="border-b px-4 py-2">' + date + '</td>';
+                        html += '<td class="border-b px-4 py-2"><input type="checkbox" data-page-select value="' + escapeHtml(pageId) + '" data-page-url="' + escapeHtml(viewUrl) + '" aria-label="Select generated page ' + escapeHtml(pageId) + '" class="rounded border-gray-300"></td>';
+                        html += '<td class="border-b px-4 py-2">' + escapeHtml(pageId) + '</td>';
+                        html += '<td class="border-b px-4 py-2 font-medium">' + escapeHtml(page.final_title || '') + '</td>';
+                        html += '<td class="border-b px-4 py-2 text-gray-500">' + escapeHtml(page.url_slug || '') + '</td>';
+                        html += '<td class="border-b px-4 py-2">' + escapeHtml(date) + '</td>';
                         html += '<td class="border-b px-4 py-2">';
                         html += '<div class="flex items-center gap-3">';
-                        html += '<a href="' + viewUrl + '" target="_blank" class="text-blue-600 hover:underline">View</a>';
-                        html += '<button type="button" data-edit-page="' + encodeURIComponent(page.id) + '" class="text-amber-600 hover:underline">Edit</button>';
-                        html += '<button type="button" data-delete-page="' + encodeURIComponent(page.id) + '" class="text-red-600 hover:underline">Delete</button>';
+                        html += '<a href="' + escapeHtml(viewUrl) + '" target="_blank" rel="noopener" class="text-blue-600 hover:underline">View</a>';
+                        html += '<button type="button" data-edit-page="' + encodeURIComponent(pageId) + '" class="text-amber-600 hover:underline">Edit</button>';
+                        html += '<button type="button" data-delete-page="' + encodeURIComponent(pageId) + '" class="text-red-600 hover:underline">Delete</button>';
                         html += '</div>';
                         html += '</td>';
                         html += '</tr>';
@@ -541,6 +559,90 @@
                     container.innerHTML = html;
                 } catch (error) {
                     container.innerHTML = '<div class="text-red-500">An error occurred while fetching pages.</div>';
+                }
+            }
+
+            function selectedPageCheckboxes() {
+                return Array.prototype.slice.call(document.querySelectorAll('[data-page-select]:checked'));
+            }
+
+            function updateSelectedPagesCount() {
+                var selected = selectedPageCheckboxes().length;
+                var selectedCount = byId('selected-pages-count');
+                var selectAll = document.querySelector('[data-select-all-pages]');
+                var allPages = document.querySelectorAll('[data-page-select]');
+
+                if (selectedCount) {
+                    selectedCount.textContent = selected;
+                }
+
+                if (selectAll) {
+                    selectAll.checked = allPages.length > 0 && selected === allPages.length;
+                    selectAll.indeterminate = selected > 0 && selected < allPages.length;
+                }
+            }
+
+            function toggleAllPagesSelection(checked) {
+                document.querySelectorAll('[data-page-select]').forEach(function (checkbox) {
+                    checkbox.checked = checked;
+                });
+
+                updateSelectedPagesCount();
+            }
+
+            function viewSelectedPages() {
+                var selected = selectedPageCheckboxes();
+
+                if (selected.length === 0) {
+                    alert('Select at least one generated page to view.');
+                    return;
+                }
+
+                selected.forEach(function (checkbox) {
+                    var url = checkbox.getAttribute('data-page-url');
+                    if (url) {
+                        window.open(url, '_blank', 'noopener');
+                    }
+                });
+            }
+
+            async function deleteSelectedPages() {
+                var selected = selectedPageCheckboxes();
+
+                if (selected.length === 0) {
+                    alert('Select at least one generated page to delete.');
+                    return;
+                }
+
+                if (!confirm('Delete ' + selected.length + ' selected generated page(s)?')) {
+                    return;
+                }
+
+                var csrfToken = document.querySelector('meta[name="csrf-token"]');
+                var failed = 0;
+
+                for (var index = 0; index < selected.length; index++) {
+                    try {
+                        var response = await fetch(routes.destroyPageBase + '/' + encodeURIComponent(selected[index].value), {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            failed++;
+                        }
+                    } catch (error) {
+                        failed++;
+                    }
+                }
+
+                await fetchAndRenderPages();
+
+                if (failed > 0) {
+                    alert(failed + ' selected page(s) could not be deleted.');
                 }
             }
 
@@ -711,7 +813,7 @@
                 }
 
                 document.addEventListener('click', function (event) {
-                    var target = event.target.closest('[data-open-modal], [data-close-modal], [data-demo-type], #apply-demo-css, [data-edit-page], [data-delete-page]');
+                    var target = event.target.closest('[data-open-modal], [data-close-modal], [data-demo-type], #apply-demo-css, [data-edit-page], [data-delete-page], [data-bulk-view-pages], [data-bulk-delete-pages]');
 
                     if (!target) {
                         return;
@@ -745,6 +847,27 @@
 
                     if (target.matches('[data-delete-page]')) {
                         deletePage(target.getAttribute('data-delete-page'));
+                        return;
+                    }
+
+                    if (target.matches('[data-bulk-view-pages]')) {
+                        viewSelectedPages();
+                        return;
+                    }
+
+                    if (target.matches('[data-bulk-delete-pages]')) {
+                        deleteSelectedPages();
+                    }
+                });
+
+                document.addEventListener('change', function (event) {
+                    if (event.target.matches('[data-select-all-pages]')) {
+                        toggleAllPagesSelection(event.target.checked);
+                        return;
+                    }
+
+                    if (event.target.matches('[data-page-select]')) {
+                        updateSelectedPagesCount();
                     }
                 });
 
