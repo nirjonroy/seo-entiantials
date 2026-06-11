@@ -18,9 +18,16 @@ class PageGeneratorController extends Controller
         return view('seo::admin.generator');
     }
 
-    public function apiGetPages()
+    public function apiGetPages(Request $request)
     {
-        return response()->json(SeoGeneratedPage::latest()->take(100)->get());
+        $perPage = (int) $request->input('per_page', 25);
+        $perPage = max(5, min($perPage, 100));
+
+        return response()->json(
+            SeoGeneratedPage::query()
+                ->latest('id')
+                ->paginate($perPage)
+        );
     }
 
     public function apiShowPage($id)
@@ -116,7 +123,6 @@ class PageGeneratorController extends Controller
             ];
 
             $template->bundles()->sync($bundleIds);
-            $template->generatedPages()->delete();
 
             $generatedCount = 0;
 
@@ -131,18 +137,20 @@ class PageGeneratorController extends Controller
                         continue;
                     }
 
-                    SeoGeneratedPage::create([
-                        'template_id' => $template->id,
-                        'url_slug' => $urlSlug,
-                        'final_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateTitle)),
-                        'final_content' => $this->normalizeGeneratedContent(
-                            $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateContent))
-                        ),
-                        'meta_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaTitle)),
-                        'meta_description' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaDescription)),
-                        'meta_keywords' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaKeywords)),
-                        'featured_image' => $metaImage,
-                    ]);
+                    SeoGeneratedPage::updateOrCreate(
+                        ['url_slug' => $urlSlug],
+                        [
+                            'template_id' => $template->id,
+                            'final_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateTitle)),
+                            'final_content' => $this->normalizeGeneratedContent(
+                                $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateContent))
+                            ),
+                            'meta_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaTitle)),
+                            'meta_description' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaDescription)),
+                            'meta_keywords' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaKeywords)),
+                            'featured_image' => $metaImage,
+                        ]
+                    );
 
                     $generatedCount++;
                 }

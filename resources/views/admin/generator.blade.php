@@ -311,6 +311,9 @@
             };
 
             var editor = null;
+            var generatedPagesPage = 1;
+            var generatedPagesPerPage = 25;
+            var generatedPagesLastPage = 1;
 
             function byId(id) {
                 return document.getElementById(id);
@@ -494,24 +497,40 @@
                 }
             }
 
-            async function fetchAndRenderPages() {
+            function paginatedPagesUrl(page) {
+                var separator = routes.pages.indexOf('?') === -1 ? '?' : '&';
+                return routes.pages + separator + 'page=' + encodeURIComponent(page) + '&per_page=' + encodeURIComponent(generatedPagesPerPage);
+            }
+
+            async function fetchAndRenderPages(page) {
                 var container = byId('generatedPagesContainer');
 
                 if (!container) {
                     return;
                 }
 
+                if (page) {
+                    generatedPagesPage = page;
+                }
+
                 container.innerHTML = '<div class="text-gray-500">Loading pages...</div>';
 
                 try {
-                    var response = await fetch(routes.pages);
+                    var response = await fetch(paginatedPagesUrl(generatedPagesPage));
                     var data = await response.json();
                     var pages = Array.isArray(data) ? data : (data.data || []);
+                    var currentPage = data.current_page || generatedPagesPage || 1;
+                    var fromItem = data.from || ((currentPage - 1) * generatedPagesPerPage + 1);
+                    var lastPage = data.last_page || 1;
+                    var totalPages = data.total || pages.length;
 
                     if (!response.ok) {
                         container.innerHTML = '<div class="text-red-500">Failed to load pages. ' + (data.message || '') + '</div>';
                         return;
                     }
+
+                    generatedPagesPage = currentPage;
+                    generatedPagesLastPage = lastPage;
 
                     if (pages.length === 0) {
                         container.innerHTML = '<div class="text-gray-500">No generated pages found.</div>';
@@ -527,21 +546,22 @@
                     html += '<div class="overflow-x-auto"><table class="min-w-full border border-gray-200 bg-white">';
                     html += '<thead><tr class="bg-gray-100 text-left text-sm uppercase tracking-wider text-gray-600">';
                     html += '<th class="w-12 border-b px-4 py-2"><input type="checkbox" data-select-all-pages aria-label="Select all generated pages" class="rounded border-gray-300"></th>';
-                    html += '<th class="border-b px-4 py-2">ID</th>';
+                    html += '<th class="border-b px-4 py-2">SL</th>';
                     html += '<th class="border-b px-4 py-2">Title</th>';
                     html += '<th class="border-b px-4 py-2">Slug</th>';
                     html += '<th class="border-b px-4 py-2">Created At</th>';
                     html += '<th class="border-b px-4 py-2">Actions</th>';
                     html += '</tr></thead><tbody class="text-sm">';
 
-                    pages.forEach(function (page) {
+                    pages.forEach(function (page, index) {
                         var viewUrl = '/' + encodeURIComponent(page.url_slug || '');
                         var date = page.created_at ? new Date(page.created_at).toLocaleString() : 'N/A';
                         var pageId = page.id || '';
+                        var serial = fromItem + index;
 
                         html += '<tr class="hover:bg-gray-50">';
                         html += '<td class="border-b px-4 py-2"><input type="checkbox" data-page-select value="' + escapeHtml(pageId) + '" data-page-url="' + escapeHtml(viewUrl) + '" aria-label="Select generated page ' + escapeHtml(pageId) + '" class="rounded border-gray-300"></td>';
-                        html += '<td class="border-b px-4 py-2">' + escapeHtml(pageId) + '</td>';
+                        html += '<td class="border-b px-4 py-2">' + escapeHtml(serial) + '</td>';
                         html += '<td class="border-b px-4 py-2 font-medium">' + escapeHtml(page.final_title || '') + '</td>';
                         html += '<td class="border-b px-4 py-2 text-gray-500">' + escapeHtml(page.url_slug || '') + '</td>';
                         html += '<td class="border-b px-4 py-2">' + escapeHtml(date) + '</td>';
@@ -556,6 +576,19 @@
                     });
 
                     html += '</tbody></table></div>';
+                    html += '<div class="mt-4 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">';
+                    html += '<div class="text-sm text-gray-600">Showing ' + escapeHtml(data.from || 0) + ' to ' + escapeHtml(data.to || pages.length) + ' of ' + escapeHtml(totalPages) + ' pages</div>';
+                    html += '<div class="flex flex-wrap items-center gap-2">';
+                    html += '<label class="text-sm text-gray-600">Per page</label>';
+                    html += '<select data-generated-pages-per-page class="rounded-md border border-gray-300 px-2 py-1 text-sm">';
+                    [10, 25, 50, 100].forEach(function (size) {
+                        html += '<option value="' + size + '"' + (Number(generatedPagesPerPage) === size ? ' selected' : '') + '>' + size + '</option>';
+                    });
+                    html += '</select>';
+                    html += '<button type="button" data-generated-pages-page="' + (currentPage - 1) + '" ' + (currentPage <= 1 ? 'disabled' : '') + ' class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">Previous</button>';
+                    html += '<span class="text-sm text-gray-600">Page ' + escapeHtml(currentPage) + ' of ' + escapeHtml(lastPage) + '</span>';
+                    html += '<button type="button" data-generated-pages-page="' + (currentPage + 1) + '" ' + (currentPage >= lastPage ? 'disabled' : '') + ' class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">Next</button>';
+                    html += '</div></div>';
                     container.innerHTML = html;
                 } catch (error) {
                     container.innerHTML = '<div class="text-red-500">An error occurred while fetching pages.</div>';
@@ -639,7 +672,7 @@
                     }
                 }
 
-                await fetchAndRenderPages();
+                await fetchAndRenderPages(generatedPagesPage);
 
                 if (failed > 0) {
                     alert(failed + ' selected page(s) could not be deleted.');
@@ -664,7 +697,7 @@
                     var data = await response.json();
 
                     if (response.ok && data.success) {
-                        fetchAndRenderPages();
+                        fetchAndRenderPages(generatedPagesPage);
                         return;
                     }
 
@@ -813,7 +846,7 @@
                 }
 
                 document.addEventListener('click', function (event) {
-                    var target = event.target.closest('[data-open-modal], [data-close-modal], [data-demo-type], #apply-demo-css, [data-edit-page], [data-delete-page], [data-bulk-view-pages], [data-bulk-delete-pages]');
+                    var target = event.target.closest('[data-open-modal], [data-close-modal], [data-demo-type], #apply-demo-css, [data-edit-page], [data-delete-page], [data-bulk-view-pages], [data-bulk-delete-pages], [data-generated-pages-page]');
 
                     if (!target) {
                         return;
@@ -857,10 +890,24 @@
 
                     if (target.matches('[data-bulk-delete-pages]')) {
                         deleteSelectedPages();
+                        return;
+                    }
+
+                    if (target.matches('[data-generated-pages-page]')) {
+                        var requestedPage = Number(target.getAttribute('data-generated-pages-page'));
+                        if (requestedPage >= 1 && requestedPage <= generatedPagesLastPage) {
+                            fetchAndRenderPages(requestedPage);
+                        }
                     }
                 });
 
                 document.addEventListener('change', function (event) {
+                    if (event.target.matches('[data-generated-pages-per-page]')) {
+                        generatedPagesPerPage = Number(event.target.value) || 25;
+                        fetchAndRenderPages(1);
+                        return;
+                    }
+
                     if (event.target.matches('[data-select-all-pages]')) {
                         toggleAllPagesSelection(event.target.checked);
                         return;
