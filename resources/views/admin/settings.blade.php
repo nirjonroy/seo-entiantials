@@ -6,11 +6,34 @@
 
 @section(config('seo.section', 'content'))
     @php
-        $sitemapFilename = $sitemapFilename ?? $sitemapFileName ?? config('seo.sitemap.filename', 'sitemap.xml');
+        $storedSitemapFilename = null;
+        $fallbackGeneratedPages = null;
+        $fallbackGeneratedPageCount = null;
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('nirjon_seo_settings')) {
+                $storedSitemapFilename = \Nirjon\LaravelSeo\Models\SeoSetting::where('key', 'sitemap.filename')->value('value');
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('nirjon_seo_generated_pages')) {
+                $fallbackGeneratedPageCount = \Nirjon\LaravelSeo\Models\SeoGeneratedPage::count();
+                $fallbackGeneratedPages = \Nirjon\LaravelSeo\Models\SeoGeneratedPage::query()
+                    ->latest('id')
+                    ->select(['id', 'url_slug', 'final_title', 'updated_at'])
+                    ->take(100)
+                    ->get();
+            }
+        } catch (\Throwable $exception) {
+            $storedSitemapFilename = null;
+            $fallbackGeneratedPages = null;
+            $fallbackGeneratedPageCount = null;
+        }
+
+        $sitemapFilename = $sitemapFilename ?? $sitemapFileName ?? $storedSitemapFilename ?? config('seo.sitemap.filename', 'sitemap.xml');
         $sitemapFilename = \Illuminate\Support\Str::slug(pathinfo($sitemapFilename, PATHINFO_FILENAME) ?: 'sitemap') . '.xml';
         $sitemapUrl = $sitemapUrl ?? url($sitemapFilename);
-        $generatedPageCount = $generatedPageCount ?? 0;
-        $generatedPages = $generatedPages ?? collect();
+        $generatedPageCount = $generatedPageCount ?? $fallbackGeneratedPageCount ?? 0;
+        $generatedPages = $generatedPages ?? $fallbackGeneratedPages ?? collect();
     @endphp
 
     <main class="min-h-screen bg-slate-100 px-6 py-10 text-slate-900">
