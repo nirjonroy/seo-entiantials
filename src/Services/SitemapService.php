@@ -2,6 +2,8 @@
 
 namespace Nirjon\LaravelSeo\Services;
 
+use Nirjon\LaravelSeo\Models\SeoGeneratedPage;
+
 class SitemapService
 {
     /**
@@ -18,11 +20,7 @@ class SitemapService
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
         // Add the homepage
-        $xml .= "    <url>\n";
-        $xml .= "        <loc>" . url('/') . "</loc>\n";
-        $xml .= "        <changefreq>" . htmlspecialchars($changeFrequency) . "</changefreq>\n";
-        $xml .= "        <priority>" . htmlspecialchars($defaultPriority) . "</priority>\n";
-        $xml .= "    </url>\n";
+        $xml .= $this->xmlUrl(url('/'), $changeFrequency, $defaultPriority);
 
         // Loop through Eloquent models
         $models = config('seo.sitemap.models', []);
@@ -32,30 +30,50 @@ class SitemapService
                 foreach ($records as $record) {
                     if (method_exists($record, 'getSitemapUrl')) {
                         $url = $record->getSitemapUrl();
-                        $xml .= "    <url>\n";
-                        $xml .= "        <loc>" . htmlspecialchars($url) . "</loc>\n";
-                        $xml .= "        <changefreq>weekly</changefreq>\n";
-                        $xml .= "        <priority>0.6</priority>\n";
-                        $xml .= "    </url>\n";
+                        $xml .= $this->xmlUrl($url, 'weekly', '0.6', $record->updated_at ?? null);
                     }
                 }
             }
         }
 
-        // Add Generated Pages
-        $generatedPages = \Nirjon\LaravelSeo\Models\SeoGeneratedPage::all();
-        foreach ($generatedPages as $page) {
-            $url = url('/' . ltrim($page->url_slug, '/'));
-            $xml .= "    <url>\n";
-            $xml .= "        <loc>" . htmlspecialchars($url) . "</loc>\n";
-            $xml .= "        <changefreq>weekly</changefreq>\n";
-            $xml .= "        <priority>0.8</priority>\n";
-            $xml .= "    </url>\n";
-        }
+        SeoGeneratedPage::query()
+            ->select(['url_slug', 'updated_at'])
+            ->orderBy('id')
+            ->chunk(500, function ($generatedPages) use (&$xml) {
+                foreach ($generatedPages as $page) {
+                    $xml .= $this->xmlUrl(
+                        url('/' . ltrim($page->url_slug, '/')),
+                        'weekly',
+                        '0.8',
+                        $page->updated_at
+                    );
+                }
+            });
 
         $xml .= '</urlset>';
 
         return $xml;
+    }
+
+    private function xmlUrl(string $url, string $changeFrequency, string $priority, $lastModified = null): string
+    {
+        $xml = "    <url>\n";
+        $xml .= "        <loc>" . $this->xmlEscape($url) . "</loc>\n";
+
+        if ($lastModified) {
+            $xml .= "        <lastmod>" . $this->xmlEscape($lastModified->toAtomString()) . "</lastmod>\n";
+        }
+
+        $xml .= "        <changefreq>" . $this->xmlEscape($changeFrequency) . "</changefreq>\n";
+        $xml .= "        <priority>" . $this->xmlEscape($priority) . "</priority>\n";
+        $xml .= "    </url>\n";
+
+        return $xml;
+    }
+
+    private function xmlEscape(string $value): string
+    {
+        return htmlspecialchars($value, ENT_XML1 | ENT_COMPAT, 'UTF-8');
     }
 
     /**
@@ -84,6 +102,16 @@ class SitemapService
                 }
             }
         }
+
+        SeoGeneratedPage::query()
+            ->select(['url_slug', 'final_title'])
+            ->orderBy('final_title')
+            ->chunk(500, function ($generatedPages) use (&$html) {
+                foreach ($generatedPages as $page) {
+                    $title = $page->final_title ?: $page->url_slug;
+                    $html .= '    <li><a href="' . htmlspecialchars(url($page->url_slug)) . '">' . htmlspecialchars($title) . '</a></li>' . "\n";
+                }
+            });
 
         $html .= '</ul>';
 

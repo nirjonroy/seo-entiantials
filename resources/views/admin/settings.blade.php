@@ -56,6 +56,77 @@
                 @endforeach
             </div>
 
+            <div class="border-t border-slate-200 px-6 py-5">
+                <div class="mb-4">
+                    <h2 class="text-base font-semibold">Dynamic Sitemap</h2>
+                    <p class="mt-1 text-sm text-slate-500">Generate a public XML sitemap from PageForge generated pages and configured sitemap models.</p>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div>
+                        <label for="sitemap_filename" class="block text-sm font-medium text-slate-700">Sitemap File Name</label>
+                        <input
+                            id="sitemap_filename"
+                            name="sitemap_filename"
+                            value="{{ $sitemapFilename }}"
+                            type="text"
+                            class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="seo-entiantials.xml"
+                        >
+                        <p class="mt-1 text-xs text-slate-500">Use a file name like <code>seo-entiantials.xml</code>. The package will sanitize the final name.</p>
+                    </div>
+
+                    <div class="rounded-md border border-blue-100 bg-blue-50 p-4">
+                        <div class="text-sm font-semibold text-blue-900">Current Sitemap URL</div>
+                        <a href="{{ $sitemapUrl }}" target="_blank" rel="noopener" class="mt-2 block break-all text-sm font-medium text-blue-700 hover:underline">{{ $sitemapUrl }}</a>
+                        <p class="mt-2 text-xs text-blue-700">The default <code>{{ url('sitemap.xml') }}</code> URL also remains available.</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 rounded-md border border-slate-200 bg-slate-50 p-4">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h3 class="text-sm font-semibold text-slate-900">PageForge Generated Pages</h3>
+                            <p class="text-sm text-slate-500">{{ $generatedPageCount }} generated page(s) will be included in the XML sitemap.</p>
+                        </div>
+                        <a href="{{ route('seo.generator') }}" class="text-sm font-semibold text-blue-700 hover:underline">Manage PageForge Pages</a>
+                    </div>
+
+                    @if($generatedPages->isNotEmpty())
+                        <div class="mt-4 max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-white">
+                            <table class="min-w-full text-left text-sm">
+                                <thead class="sticky top-0 bg-slate-100 text-xs uppercase tracking-wide text-slate-500">
+                                    <tr>
+                                        <th class="px-3 py-2">SL</th>
+                                        <th class="px-3 py-2">Title</th>
+                                        <th class="px-3 py-2">URL</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach($generatedPages as $page)
+                                        <tr>
+                                            <td class="px-3 py-2 text-slate-500">{{ $loop->iteration }}</td>
+                                            <td class="px-3 py-2 font-medium text-slate-900">{{ $page->final_title }}</td>
+                                            <td class="px-3 py-2">
+                                                <a href="{{ url($page->url_slug) }}" target="_blank" rel="noopener" class="break-all text-blue-700 hover:underline">{{ url($page->url_slug) }}</a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if($generatedPageCount > $generatedPages->count())
+                            <p class="mt-2 text-xs text-slate-500">Showing latest {{ $generatedPages->count() }} generated pages in this panel. All {{ $generatedPageCount }} generated pages are included in the XML output.</p>
+                        @endif
+                    @else
+                        <div class="mt-4 rounded-md border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
+                            No PageForge generated pages found yet.
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             <div class="flex justify-end border-t border-slate-200 px-6 py-4">
                 <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                     Save

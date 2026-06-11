@@ -268,6 +268,26 @@ Render an HTML sitemap in Blade:
 
 PageForge generated pages are included in the sitemap.
 
+The package also supports a database-configurable public sitemap filename from:
+
+```text
+/admin/seo-admin/settings
+```
+
+In the Sitemap settings panel, set a name such as:
+
+```text
+seo-entiantials.xml
+```
+
+Then the dynamic XML sitemap is available at:
+
+```text
+/seo-entiantials.xml
+```
+
+The default `/sitemap.xml` endpoint remains available for compatibility. The settings panel shows the current sitemap URL and the PageForge generated pages included in the XML output.
+
 ## PageForge Bulk Page Generator
 
 Open:

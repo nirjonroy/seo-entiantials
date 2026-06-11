@@ -42,7 +42,10 @@ class SEOServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
 
-        Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+        Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('seo.sitemap');
+        Route::get('/{sitemapFile}', [SitemapController::class, 'index'])
+            ->where('sitemapFile', '[A-Za-z0-9\-_]+\.xml')
+            ->name('seo.sitemap.dynamic');
         Route::get('/robots.txt', [SeoFilesController::class, 'robots']);
         Route::get('/llms.txt', [SeoFilesController::class, 'llms']);
         Route::get('/.well-known/security.txt', [SeoFilesController::class, 'security']);
@@ -106,14 +109,27 @@ class SEOServiceProvider extends ServiceProvider
                 return;
             }
 
-            $settings = \Nirjon\LaravelSeo\Models\SeoSetting::where('key', 'like', 'modules.%')
+            $settings = \Nirjon\LaravelSeo\Models\SeoSetting::where(function ($query) {
+                    $query->where('key', 'like', 'modules.%')
+                        ->orWhere('key', 'like', 'sitemap.%');
+                })
                 ->pluck('value', 'key');
 
             foreach ($settings as $key => $value) {
-                $module = substr($key, strlen('modules.'));
+                if (str_starts_with($key, 'modules.')) {
+                    $module = substr($key, strlen('modules.'));
 
-                if ($module !== '') {
-                    config(["seo.modules.{$module}" => filter_var($value, FILTER_VALIDATE_BOOLEAN)]);
+                    if ($module !== '') {
+                        config(["seo.modules.{$module}" => filter_var($value, FILTER_VALIDATE_BOOLEAN)]);
+                    }
+                }
+
+                if (str_starts_with($key, 'sitemap.')) {
+                    $setting = substr($key, strlen('sitemap.'));
+
+                    if ($setting !== '') {
+                        config(["seo.sitemap.{$setting}" => $value]);
+                    }
                 }
             }
         } catch (\Throwable $exception) {

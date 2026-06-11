@@ -77,6 +77,7 @@ return [
     'sitemap' => [
         'enable_xml' => true,
         'enable_html' => true,
+        'filename' => 'sitemap.xml',
         'exclude_urls' => ['/admin/*', '/login', '/register'],
         'change_frequency' => 'weekly',
         'default_priority' => '0.8',

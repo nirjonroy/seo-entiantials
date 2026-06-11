@@ -24,7 +24,7 @@ class GeneratedPageFallbackMiddleware
 
         $slug = trim($request->path(), '/');
 
-        if ($slug === '' || str_contains($slug, '/') || $this->shouldSkip($slug)) {
+        if ($slug === '' || str_contains($slug, '/') || str_ends_with($slug, '.xml') || $this->shouldSkip($slug)) {
             return $response;
         }
 
