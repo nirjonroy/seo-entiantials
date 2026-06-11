@@ -5,6 +5,14 @@
 @endpush
 
 @section(config('seo.section', 'content'))
+    @php
+        $sitemapFilename = $sitemapFilename ?? $sitemapFileName ?? config('seo.sitemap.filename', 'sitemap.xml');
+        $sitemapFilename = \Illuminate\Support\Str::slug(pathinfo($sitemapFilename, PATHINFO_FILENAME) ?: 'sitemap') . '.xml';
+        $sitemapUrl = $sitemapUrl ?? url($sitemapFilename);
+        $generatedPageCount = $generatedPageCount ?? 0;
+        $generatedPages = $generatedPages ?? collect();
+    @endphp
+
     <main class="min-h-screen bg-slate-100 px-6 py-10 text-slate-900">
         <div class="mx-auto max-w-4xl">
         <div class="mb-6 flex items-center justify-between">
