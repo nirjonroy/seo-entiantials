@@ -66,10 +66,14 @@ class SeoSettingsController extends Controller
             );
         }
 
-        SeoSetting::updateOrCreate(
-            ['key' => 'sitemap.filename'],
-            ['value' => $this->sitemapFilename($request->input('sitemap_filename', 'sitemap.xml'))]
-        );
+        $requestedSitemapFilename = $request->input('sitemap_filename');
+
+        if (is_string($requestedSitemapFilename) && trim($requestedSitemapFilename) !== '') {
+            SeoSetting::updateOrCreate(
+                ['key' => 'sitemap.filename'],
+                ['value' => $this->sitemapFilename($requestedSitemapFilename)]
+            );
+        }
 
         return redirect('admin/seo-admin/settings')->with('status', 'SEO settings saved successfully.');
     }

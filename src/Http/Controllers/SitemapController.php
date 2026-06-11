@@ -3,7 +3,9 @@
 namespace Nirjon\LaravelSeo\Http\Controllers;
 
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Nirjon\LaravelSeo\Models\SeoSetting;
 use Nirjon\LaravelSeo\Services\SitemapService;
 
 class SitemapController extends Controller
@@ -31,6 +33,19 @@ class SitemapController extends Controller
     private function configuredFilename(): string
     {
         $filename = (string) config('seo.sitemap.filename', 'sitemap.xml');
+
+        try {
+            if (Schema::hasTable('nirjon_seo_settings')) {
+                $storedFilename = SeoSetting::where('key', 'sitemap.filename')->value('value');
+
+                if (is_string($storedFilename) && trim($storedFilename) !== '') {
+                    $filename = $storedFilename;
+                }
+            }
+        } catch (\Throwable $exception) {
+            //
+        }
+
         $baseName = pathinfo($filename, PATHINFO_FILENAME);
         $baseName = Str::slug($baseName ?: 'sitemap');
 
