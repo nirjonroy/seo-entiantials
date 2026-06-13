@@ -137,20 +137,18 @@ class PageGeneratorController extends Controller
                         continue;
                     }
 
-                    SeoGeneratedPage::updateOrCreate(
-                        ['url_slug' => $urlSlug],
-                        [
-                            'template_id' => $template->id,
-                            'final_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateTitle)),
-                            'final_content' => $this->normalizeGeneratedContent(
-                                $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateContent))
-                            ),
-                            'meta_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaTitle)),
-                            'meta_description' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaDescription)),
-                            'meta_keywords' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaKeywords)),
-                            'featured_image' => $metaImage,
-                        ]
-                    );
+                    SeoGeneratedPage::create([
+                        'template_id' => $template->id,
+                        'url_slug' => $this->uniqueGeneratedSlug($urlSlug),
+                        'final_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateTitle)),
+                        'final_content' => $this->normalizeGeneratedContent(
+                            $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateContent))
+                        ),
+                        'meta_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaTitle)),
+                        'meta_description' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaDescription)),
+                        'meta_keywords' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaKeywords)),
+                        'featured_image' => $metaImage,
+                    ]);
 
                     $generatedCount++;
                 }
@@ -235,5 +233,18 @@ class PageGeneratorController extends Controller
     private function normalizeGeneratedContent(string $content): string
     {
         return html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    private function uniqueGeneratedSlug(string $baseSlug): string
+    {
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (SeoGeneratedPage::where('url_slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $slug;
     }
 }

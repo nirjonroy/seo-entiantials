@@ -112,19 +112,16 @@ class PageGenerationEngine
                 continue;
             }
 
-            // Save the generated page
-            SeoGeneratedPage::updateOrCreate(
-                ['url_slug' => $urlSlug],
-                [
-                    'template_id' => $template->id,
-                    'final_title' => $title,
-                    'final_content' => $content,
-                    'meta_title' => $metaTitle,
-                    'meta_description' => $metaDescription,
-                    'meta_keywords' => $metaKeywords,
-                    'featured_image' => $featuredImage,
-                ]
-            );
+            SeoGeneratedPage::create([
+                'template_id' => $template->id,
+                'url_slug' => $this->uniqueGeneratedSlug($urlSlug),
+                'final_title' => $title,
+                'final_content' => $content,
+                'meta_title' => $metaTitle,
+                'meta_description' => $metaDescription,
+                'meta_keywords' => $metaKeywords,
+                'featured_image' => $featuredImage,
+            ]);
 
             $generatedCount++;
         }
@@ -152,5 +149,18 @@ class PageGenerationEngine
             },
             $text
         );
+    }
+
+    private function uniqueGeneratedSlug(string $baseSlug): string
+    {
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (SeoGeneratedPage::where('url_slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $slug;
     }
 }
