@@ -66,6 +66,7 @@ class PageGeneratorController extends Controller
         }
 
         $generatedCount = DB::transaction(function () use ($request, $bundle1Values, $bundle2Values) {
+            $existingGeneratedPageCount = SeoGeneratedPage::count();
             $metaImage = $request->input('metaImage', '');
 
             if ($request->hasFile('featured_image')) {
@@ -152,6 +153,13 @@ class PageGeneratorController extends Controller
 
                     $generatedCount++;
                 }
+            }
+
+            $finalGeneratedPageCount = SeoGeneratedPage::count();
+            $expectedMinimumCount = $existingGeneratedPageCount + $generatedCount;
+
+            if ($finalGeneratedPageCount < $expectedMinimumCount) {
+                throw new \RuntimeException('PageForge generation was stopped because existing generated pages would be removed.');
             }
 
             return $generatedCount;

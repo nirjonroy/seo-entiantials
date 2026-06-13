@@ -66,6 +66,7 @@ class PageGenerationEngine
         $combinations = $this->getCartesianProduct($keywordArrays);
 
         $generatedCount = 0;
+        $existingGeneratedPageCount = SeoGeneratedPage::count();
 
         foreach ($combinations as $combination) {
             $title = $template->title_structure ?? '';
@@ -124,6 +125,13 @@ class PageGenerationEngine
             ]);
 
             $generatedCount++;
+        }
+
+        $finalGeneratedPageCount = SeoGeneratedPage::count();
+        $expectedMinimumCount = $existingGeneratedPageCount + $generatedCount;
+
+        if ($finalGeneratedPageCount < $expectedMinimumCount) {
+            throw new \RuntimeException('PageForge generation was stopped because existing generated pages would be removed.');
         }
 
         return $generatedCount;
