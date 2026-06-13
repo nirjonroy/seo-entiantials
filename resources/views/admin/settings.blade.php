@@ -7,12 +7,16 @@
 @section(config('seo.section', 'content'))
     @php
         $storedSitemapFilename = null;
+        $storedSitemapUrlsPerFile = null;
+        $storedSitemapChildPattern = null;
         $fallbackGeneratedPages = null;
         $fallbackGeneratedPageCount = null;
 
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('nirjon_seo_settings')) {
                 $storedSitemapFilename = \Nirjon\LaravelSeo\Models\SeoSetting::where('key', 'sitemap.filename')->value('value');
+                $storedSitemapUrlsPerFile = \Nirjon\LaravelSeo\Models\SeoSetting::where('key', 'sitemap.urls_per_file')->value('value');
+                $storedSitemapChildPattern = \Nirjon\LaravelSeo\Models\SeoSetting::where('key', 'sitemap.child_pattern')->value('value');
             }
 
             if (\Illuminate\Support\Facades\Schema::hasTable('nirjon_seo_generated_pages')) {
@@ -25,15 +29,33 @@
             }
         } catch (\Throwable $exception) {
             $storedSitemapFilename = null;
+            $storedSitemapUrlsPerFile = null;
+            $storedSitemapChildPattern = null;
             $fallbackGeneratedPages = null;
             $fallbackGeneratedPageCount = null;
         }
 
         $sitemapFilename = $sitemapFilename ?? $sitemapFileName ?? $storedSitemapFilename ?? config('seo.sitemap.filename', 'sitemap.xml');
         $sitemapFilename = \Illuminate\Support\Str::slug(pathinfo($sitemapFilename, PATHINFO_FILENAME) ?: 'sitemap') . '.xml';
+        $sitemapUrlsPerFile = (int) ($sitemapUrlsPerFile ?? $storedSitemapUrlsPerFile ?? config('seo.sitemap.urls_per_file', 1000));
+        $sitemapUrlsPerFile = max(1, min($sitemapUrlsPerFile, 50000));
+        $sitemapChildPattern = $sitemapChildPattern ?? $storedSitemapChildPattern ?? config('seo.sitemap.child_pattern', '{base}-{page}.xml');
+        $sitemapChildPattern = str_contains($sitemapChildPattern, '{page}') ? $sitemapChildPattern : '{base}-{page}.xml';
         $sitemapUrl = $sitemapUrl ?? url($sitemapFilename);
         $generatedPageCount = $generatedPageCount ?? $fallbackGeneratedPageCount ?? 0;
         $generatedPages = $generatedPages ?? $fallbackGeneratedPages ?? collect();
+        $sitemapPageFilenames = $sitemapPageFilenames ?? [];
+        if (empty($sitemapPageFilenames)) {
+            $totalSitemapUrls = $generatedPageCount + 1;
+            $pageCount = (int) ceil($totalSitemapUrls / $sitemapUrlsPerFile);
+            $baseName = pathinfo($sitemapFilename, PATHINFO_FILENAME);
+            $sitemapPageFilenames = $pageCount > 1
+                ? array_map(
+                    fn ($page) => \Illuminate\Support\Str::slug(pathinfo(str_replace(['{base}', '{page}'], [$baseName, (string) $page], $sitemapChildPattern), PATHINFO_FILENAME) ?: "{$baseName}-{$page}") . '.xml',
+                    range(1, $pageCount)
+                )
+                : [$sitemapFilename];
+        }
     @endphp
 
     <main class="min-h-screen bg-slate-100 px-6 py-10 text-slate-900">
@@ -107,10 +129,51 @@
                         <p class="mt-1 text-xs text-slate-500">Use a file name like <code>seo-entiantials.xml</code>. The package will sanitize the final name.</p>
                     </div>
 
+                    <div>
+                        <label for="sitemap_urls_per_file" class="block text-sm font-medium text-slate-700">URLs Per Sitemap File</label>
+                        <input
+                            id="sitemap_urls_per_file"
+                            name="sitemap_urls_per_file"
+                            value="{{ $sitemapUrlsPerFile }}"
+                            type="number"
+                            min="1"
+                            max="50000"
+                            class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                        <p class="mt-1 text-xs text-slate-500">When URL count is greater than this number, the package creates numbered sitemap files.</p>
+                    </div>
+
+                    <div>
+                        <label for="sitemap_child_pattern" class="block text-sm font-medium text-slate-700">Child Sitemap Name Pattern</label>
+                        <input
+                            id="sitemap_child_pattern"
+                            name="sitemap_child_pattern"
+                            value="{{ $sitemapChildPattern }}"
+                            type="text"
+                            class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="{base}-{page}.xml"
+                        >
+                        <p class="mt-1 text-xs text-slate-500">Use <code>{base}</code> and <code>{page}</code>. Example: <code>{base}-{page}.xml</code> creates <code>seo-essentials-2.xml</code>.</p>
+                    </div>
+
                     <div class="rounded-md border border-blue-100 bg-blue-50 p-4">
                         <div class="text-sm font-semibold text-blue-900">Current Sitemap URL</div>
                         <a href="{{ $sitemapUrl }}" target="_blank" rel="noopener" class="mt-2 block break-all text-sm font-medium text-blue-700 hover:underline">{{ $sitemapUrl }}</a>
                         <p class="mt-2 text-xs text-blue-700">The default <code>{{ url('sitemap.xml') }}</code> URL also remains available.</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 rounded-md border border-slate-200 bg-white p-4">
+                    <div class="text-sm font-semibold text-slate-900">Generated Sitemap Files</div>
+                    <p class="mt-1 text-sm text-slate-500">
+                        {{ count($sitemapPageFilenames) > 1 ? $sitemapFilename . ' is the sitemap index. These child files contain the URLs.' : 'The sitemap currently fits in one file.' }}
+                    </p>
+                    <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                        @foreach($sitemapPageFilenames as $filename)
+                            <a href="{{ url($filename) }}" target="_blank" rel="noopener" class="break-all rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">
+                                {{ url($filename) }}
+                            </a>
+                        @endforeach
                     </div>
                 </div>
 

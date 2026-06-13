@@ -4,90 +4,297 @@ namespace Nirjon\LaravelSeo\Services;
 
 use Carbon\Carbon;
 use DateTimeInterface;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Nirjon\LaravelSeo\Models\SeoGeneratedPage;
+use Nirjon\LaravelSeo\Models\SeoSetting;
 
 class SitemapService
 {
-    /**
-     * Generate the XML sitemap string.
-     *
-     * @return string
-     */
-    public function generateXml(): string
+    public function generateXml(?string $requestedFilename = null): string
     {
         ob_start();
-        $this->streamXml();
+        $this->streamXml($requestedFilename);
 
         return (string) ob_get_clean();
     }
 
-    /**
-     * Stream the XML sitemap in chunks.
-     *
-     * @return void
-     */
-    public function streamXml(): void
+    public function streamXml(?string $requestedFilename = null): void
     {
-        $changeFrequency = config('seo.sitemap.change_frequency', 'weekly');
-        $defaultPriority = config('seo.sitemap.default_priority', '0.8');
+        $requestedFilename = $this->sanitizeFilename($requestedFilename ?: $this->baseFilename());
+        $totalUrls = $this->totalUrlCount();
+        $urlsPerFile = $this->urlsPerFile();
 
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        if ($totalUrls > $urlsPerFile) {
+            $pageNumber = $this->pageNumberForFilename($requestedFilename);
 
-        // Add the homepage
-        echo $this->xmlUrl(url('/'), $changeFrequency, $defaultPriority);
+            if ($this->isIndexFilename($requestedFilename)) {
+                $this->streamIndex($totalUrls);
+                return;
+            }
 
-        // Loop through Eloquent models
-        $models = config('seo.sitemap.models', []);
-        foreach ($models as $modelClass) {
+            if ($pageNumber !== null) {
+                $this->streamUrlset($pageNumber);
+                return;
+            }
+        }
+
+        $this->streamUrlset(1);
+    }
+
+    public function canServe(?string $requestedFilename = null): bool
+    {
+        $requestedFilename = $this->sanitizeFilename($requestedFilename ?: $this->baseFilename());
+
+        if ($this->isIndexFilename($requestedFilename)) {
+            return true;
+        }
+
+        if ($this->totalUrlCount() <= $this->urlsPerFile()) {
+            return false;
+        }
+
+        return $this->pageNumberForFilename($requestedFilename) !== null;
+    }
+
+    public function baseFilename(): string
+    {
+        return $this->storedFilename('sitemap.filename', config('seo.sitemap.filename', 'sitemap.xml'));
+    }
+
+    public function urlsPerFile(): int
+    {
+        $value = (int) $this->storedValue('sitemap.urls_per_file', config('seo.sitemap.urls_per_file', 1000));
+
+        return max(1, min($value, 50000));
+    }
+
+    public function childPattern(): string
+    {
+        $pattern = (string) $this->storedValue(
+            'sitemap.child_pattern',
+            config('seo.sitemap.child_pattern', '{base}-{page}.xml')
+        );
+
+        return str_contains($pattern, '{page}') ? $pattern : '{base}-{page}.xml';
+    }
+
+    public function pageFilenames(): array
+    {
+        $pageCount = $this->pageCount();
+
+        if ($pageCount <= 1) {
+            return [$this->baseFilename()];
+        }
+
+        return array_map(fn ($page) => $this->childFilename($page), range(1, $pageCount));
+    }
+
+    public function pageCount(): int
+    {
+        return (int) ceil($this->totalUrlCount() / $this->urlsPerFile());
+    }
+
+    public function totalUrlCount(): int
+    {
+        $count = 1;
+
+        foreach (config('seo.sitemap.models', []) as $modelClass) {
             if (! class_exists($modelClass) || ! method_exists($modelClass, 'query')) {
                 continue;
             }
 
             try {
-                $modelClass::query()->chunkById(500, function ($records) {
-                    foreach ($records as $record) {
-                        try {
-                            if (method_exists($record, 'getSitemapUrl')) {
-                                $url = $record->getSitemapUrl();
-
-                                if (is_string($url) && $url !== '') {
-                                    echo $this->xmlUrl($url, 'weekly', '0.6', $record->updated_at ?? null);
-                                }
-                            }
-                        } catch (\Throwable $exception) {
-                            continue;
-                        }
-                    }
-                });
+                $count += (int) $modelClass::query()->count();
             } catch (\Throwable $exception) {
                 continue;
             }
         }
 
-        SeoGeneratedPage::query()
-            ->select(['id', 'url_slug', 'updated_at'])
-            ->orderBy('id')
-            ->chunkById(500, function ($generatedPages) {
-                foreach ($generatedPages as $page) {
+        try {
+            if (Schema::hasTable('nirjon_seo_generated_pages')) {
+                $count += SeoGeneratedPage::count();
+            }
+        } catch (\Throwable $exception) {
+            //
+        }
+
+        return $count;
+    }
+
+    private function streamIndex(int $totalUrls): void
+    {
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+        foreach ($this->pageFilenames() as $filename) {
+            echo "    <sitemap>\n";
+            echo "        <loc>" . $this->xmlEscape(url($filename)) . "</loc>\n";
+            echo "        <lastmod>" . $this->xmlEscape(now()->toAtomString()) . "</lastmod>\n";
+            echo "    </sitemap>\n";
+        }
+
+        echo '</sitemapindex>';
+    }
+
+    private function streamUrlset(int $pageNumber): void
+    {
+        $changeFrequency = config('seo.sitemap.change_frequency', 'weekly');
+        $defaultPriority = (string) config('seo.sitemap.default_priority', '0.1');
+        $urlsPerFile = $this->urlsPerFile();
+        $offset = max(0, ($pageNumber - 1) * $urlsPerFile);
+        $remaining = $urlsPerFile;
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+        if ($offset === 0 && $remaining > 0) {
+            echo $this->xmlUrl(url('/'), $changeFrequency, $defaultPriority);
+            $remaining--;
+        } else {
+            $offset = max(0, $offset - 1);
+        }
+
+        foreach (config('seo.sitemap.models', []) as $modelClass) {
+            if ($remaining <= 0) {
+                break;
+            }
+
+            if (! class_exists($modelClass) || ! method_exists($modelClass, 'query')) {
+                continue;
+            }
+
+            try {
+                $modelCount = (int) $modelClass::query()->count();
+
+                if ($offset >= $modelCount) {
+                    $offset -= $modelCount;
+                    continue;
+                }
+
+                $modelClass::query()
+                    ->skip($offset)
+                    ->take($remaining)
+                    ->get()
+                    ->each(function ($record) use (&$remaining) {
+                        if ($remaining <= 0) {
+                            return;
+                        }
+
+                        try {
+                            if (method_exists($record, 'getSitemapUrl')) {
+                                $url = $record->getSitemapUrl();
+
+                                if (is_string($url) && $url !== '') {
+                                    echo $this->xmlUrl($url, 'weekly', '0.1', $record->updated_at ?? null);
+                                    $remaining--;
+                                }
+                            }
+                        } catch (\Throwable $exception) {
+                            //
+                        }
+                    });
+
+                $offset = 0;
+            } catch (\Throwable $exception) {
+                continue;
+            }
+        }
+
+        if ($remaining > 0) {
+            $this->streamGeneratedPages($offset, $remaining);
+        }
+
+        echo '</urlset>';
+    }
+
+    private function streamGeneratedPages(int $offset, int &$remaining): void
+    {
+        try {
+            SeoGeneratedPage::query()
+                ->select(['id', 'url_slug', 'updated_at'])
+                ->orderBy('id')
+                ->skip($offset)
+                ->take($remaining)
+                ->get()
+                ->each(function ($page) use (&$remaining) {
+                    if ($remaining <= 0) {
+                        return;
+                    }
+
                     try {
                         if (! is_string($page->url_slug) || $page->url_slug === '') {
-                            continue;
+                            return;
                         }
 
                         echo $this->xmlUrl(
                             url('/' . ltrim($page->url_slug, '/')),
                             'weekly',
-                            '0.8',
+                            '0.1',
                             $page->updated_at
                         );
+                        $remaining--;
                     } catch (\Throwable $exception) {
-                        continue;
+                        //
                     }
-                }
-            }, 'id');
+                });
+        } catch (\Throwable $exception) {
+            //
+        }
+    }
 
-        echo '</urlset>';
+    private function pageNumberForFilename(string $filename): ?int
+    {
+        foreach ($this->pageFilenames() as $index => $pageFilename) {
+            if ($filename === $pageFilename) {
+                return $index + 1;
+            }
+        }
+
+        return null;
+    }
+
+    private function childFilename(int $page): string
+    {
+        $baseName = pathinfo($this->baseFilename(), PATHINFO_FILENAME);
+        $filename = str_replace(['{base}', '{page}'], [$baseName, (string) $page], $this->childPattern());
+
+        return $this->sanitizeFilename($filename);
+    }
+
+    private function isIndexFilename(string $filename): bool
+    {
+        return in_array($filename, ['sitemap.xml', $this->baseFilename()], true);
+    }
+
+    private function storedFilename(string $key, $default): string
+    {
+        return $this->sanitizeFilename((string) $this->storedValue($key, $default));
+    }
+
+    private function storedValue(string $key, $default)
+    {
+        try {
+            if (Schema::hasTable('nirjon_seo_settings')) {
+                $value = SeoSetting::where('key', $key)->value('value');
+
+                if (is_string($value) && trim($value) !== '') {
+                    return $value;
+                }
+            }
+        } catch (\Throwable $exception) {
+            //
+        }
+
+        return $default;
+    }
+
+    private function sanitizeFilename(string $filename): string
+    {
+        $baseName = pathinfo($filename, PATHINFO_FILENAME);
+        $baseName = Str::slug($baseName ?: 'sitemap');
+
+        return ($baseName ?: 'sitemap') . '.xml';
     }
 
     private function xmlUrl(string $url, string $changeFrequency, string $priority, $lastModified = null): string
@@ -130,19 +337,12 @@ class SitemapService
         return null;
     }
 
-    /**
-     * Generate the HTML sitemap string.
-     *
-     * @return string
-     */
     public function generateHtml(): string
     {
         $html = '<ul class="seo-html-sitemap">' . "\n";
         $html .= '    <li><a href="' . url('/') . '">Home</a></li>' . "\n";
 
-        // Loop through Eloquent models
-        $models = config('seo.sitemap.models', []);
-        foreach ($models as $modelClass) {
+        foreach (config('seo.sitemap.models', []) as $modelClass) {
             if (class_exists($modelClass)) {
                 $records = $modelClass::all();
                 foreach ($records as $record) {

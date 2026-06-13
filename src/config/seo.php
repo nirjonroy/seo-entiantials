@@ -78,9 +78,11 @@ return [
         'enable_xml' => true,
         'enable_html' => true,
         'filename' => 'sitemap.xml',
+        'urls_per_file' => 1000,
+        'child_pattern' => '{base}-{page}.xml',
         'exclude_urls' => ['/admin/*', '/login', '/register'],
         'change_frequency' => 'weekly',
-        'default_priority' => '0.8',
+        'default_priority' => '0.1',
         
         // Add your Eloquent model classes here (e.g., \App\Models\Product::class, \App\Models\Service::class)
         // to automatically include them in the sitemap.

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Nirjon\LaravelSeo\Models\SeoGeneratedPage;
 use Nirjon\LaravelSeo\Models\SeoSetting;
+use Nirjon\LaravelSeo\Services\SitemapService;
 
 class SeoSettingsController extends Controller
 {
@@ -26,10 +27,12 @@ class SeoSettingsController extends Controller
         $modules = $this->modules;
         $moduleLinks = $this->moduleLinks();
         $moduleValues = [];
-        $sitemapFilename = $this->sitemapFilename(
-            SeoSetting::where('key', 'sitemap.filename')->value('value') ?: config('seo.sitemap.filename', 'sitemap.xml')
-        );
+        $sitemapService = app(SitemapService::class);
+        $sitemapFilename = $sitemapService->baseFilename();
         $sitemapUrl = url($sitemapFilename);
+        $sitemapUrlsPerFile = $sitemapService->urlsPerFile();
+        $sitemapChildPattern = $sitemapService->childPattern();
+        $sitemapPageFilenames = $sitemapService->pageFilenames();
         $generatedPageCount = SeoGeneratedPage::count();
         $generatedPages = SeoGeneratedPage::query()
             ->latest('id')
@@ -50,6 +53,9 @@ class SeoSettingsController extends Controller
             'moduleLinks',
             'sitemapFilename',
             'sitemapUrl',
+            'sitemapUrlsPerFile',
+            'sitemapChildPattern',
+            'sitemapPageFilenames',
             'generatedPageCount',
             'generatedPages'
         ));
@@ -75,6 +81,16 @@ class SeoSettingsController extends Controller
             );
         }
 
+        SeoSetting::updateOrCreate(
+            ['key' => 'sitemap.urls_per_file'],
+            ['value' => (string) $this->urlsPerFile($request->input('sitemap_urls_per_file', 1000))]
+        );
+
+        SeoSetting::updateOrCreate(
+            ['key' => 'sitemap.child_pattern'],
+            ['value' => $this->childPattern($request->input('sitemap_child_pattern', '{base}-{page}.xml'))]
+        );
+
         return redirect('admin/seo-admin/settings')->with('status', 'SEO settings saved successfully.');
     }
 
@@ -94,6 +110,18 @@ class SeoSettingsController extends Controller
         $baseName = Str::slug($baseName ?: 'sitemap');
 
         return ($baseName ?: 'sitemap') . '.xml';
+    }
+
+    private function urlsPerFile($value): int
+    {
+        return max(1, min((int) $value, 50000));
+    }
+
+    private function childPattern($pattern): string
+    {
+        $pattern = trim((string) $pattern);
+
+        return str_contains($pattern, '{page}') ? $pattern : '{base}-{page}.xml';
     }
 
     private function moduleLinks(): array

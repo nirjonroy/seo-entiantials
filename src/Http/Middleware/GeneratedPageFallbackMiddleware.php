@@ -4,11 +4,8 @@ namespace Nirjon\LaravelSeo\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 use Nirjon\LaravelSeo\Http\Controllers\GeneratedPageController;
 use Nirjon\LaravelSeo\Models\SeoGeneratedPage;
-use Nirjon\LaravelSeo\Models\SeoSetting;
 use Nirjon\LaravelSeo\Services\SitemapService;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -30,8 +27,8 @@ class GeneratedPageFallbackMiddleware
 
         if ($this->isSitemapRequest($slug)) {
             try {
-                return response()->stream(function () {
-                    app(SitemapService::class)->streamXml();
+                return response()->stream(function () use ($slug) {
+                    app(SitemapService::class)->streamXml($slug);
                 }, 200, ['Content-Type' => 'text/xml; charset=UTF-8']);
             } catch (\Throwable $exception) {
                 return $response;
@@ -79,28 +76,6 @@ class GeneratedPageFallbackMiddleware
             return false;
         }
 
-        return in_array($slug, ['sitemap.xml', $this->configuredSitemapFilename()], true);
-    }
-
-    protected function configuredSitemapFilename(): string
-    {
-        $filename = (string) config('seo.sitemap.filename', 'sitemap.xml');
-
-        try {
-            if (Schema::hasTable('nirjon_seo_settings')) {
-                $storedFilename = SeoSetting::where('key', 'sitemap.filename')->value('value');
-
-                if (is_string($storedFilename) && trim($storedFilename) !== '') {
-                    $filename = $storedFilename;
-                }
-            }
-        } catch (\Throwable $exception) {
-            //
-        }
-
-        $baseName = pathinfo($filename, PATHINFO_FILENAME);
-        $baseName = Str::slug($baseName ?: 'sitemap');
-
-        return ($baseName ?: 'sitemap') . '.xml';
+        return app(SitemapService::class)->canServe($slug);
     }
 }
