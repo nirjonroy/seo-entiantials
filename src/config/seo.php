@@ -82,7 +82,7 @@ return [
         'child_pattern' => '{base}-{page}.xml',
         'exclude_urls' => ['/admin/*', '/login', '/register'],
         'change_frequency' => 'weekly',
-        'default_priority' => '0.1',
+        'default_priority' => '1.0',
         
         // Add your Eloquent model classes here (e.g., \App\Models\Product::class, \App\Models\Service::class)
         // to automatically include them in the sitemap.

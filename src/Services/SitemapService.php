@@ -140,7 +140,7 @@ class SitemapService
     private function streamUrlset(int $pageNumber): void
     {
         $changeFrequency = config('seo.sitemap.change_frequency', 'weekly');
-        $defaultPriority = (string) config('seo.sitemap.default_priority', '0.1');
+        $defaultPriority = (string) config('seo.sitemap.default_priority', '1.0');
         $urlsPerFile = $this->urlsPerFile();
         $offset = max(0, ($pageNumber - 1) * $urlsPerFile);
         $remaining = $urlsPerFile;
@@ -186,7 +186,7 @@ class SitemapService
                                 $url = $record->getSitemapUrl();
 
                                 if (is_string($url) && $url !== '') {
-                                    echo $this->xmlUrl($url, 'weekly', '0.1', $record->updated_at ?? null);
+                                    echo $this->xmlUrl($url, 'weekly', '1.0', $record->updated_at ?? null);
                                     $remaining--;
                                 }
                             }
@@ -230,7 +230,7 @@ class SitemapService
                         echo $this->xmlUrl(
                             url('/' . ltrim($page->url_slug, '/')),
                             'weekly',
-                            '0.1',
+                            '1.0',
                             $page->updated_at
                         );
                         $remaining--;
