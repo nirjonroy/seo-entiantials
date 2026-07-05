@@ -16,25 +16,30 @@ class SeoRedirectMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (! config('seo.modules.redirections', true)) {
+            return $next($request);
+        }
+
         $activeRedirects = SeoRedirect::where('is_active', true)->get();
-        $requestPath = $request->path();
+        $requestPath = '/' . trim($request->path(), '/');
+        $requestUrl = rtrim($request->fullUrl(), '/');
 
         foreach ($activeRedirects as $redirect) {
-            $sourceUrl = $redirect->source_url;
+            $sourceUrl = $this->normalizeSource($redirect->source_url);
             $currentPath = $requestPath;
+            $currentUrl = $requestUrl;
 
             if ($redirect->ignore_case) {
                 $sourceUrl = strtolower($sourceUrl);
                 $currentPath = strtolower($currentPath);
+                $currentUrl = strtolower($currentUrl);
             }
 
-            $isMatch = false;
-
-            if ($redirect->match_type === 'exact') {
-                // Compare paths without leading or trailing slashes to ensure consistent matching
-                $isMatch = trim($sourceUrl, '/') === trim($currentPath, '/');
-            }
-            // Add other match_type implementations like 'regex', 'starts_with', etc., here later
+            $isMatch = match ($redirect->match_type) {
+                'starts_with' => str_starts_with($currentPath, $sourceUrl) || str_starts_with($currentUrl, $sourceUrl),
+                'contains' => str_contains($currentPath, $sourceUrl) || str_contains($currentUrl, $sourceUrl),
+                default => trim($sourceUrl, '/') === trim($currentPath, '/') || rtrim($sourceUrl, '/') === rtrim($currentUrl, '/'),
+            };
 
             if ($isMatch) {
                 if (in_array($redirect->redirect_type, [410, 451])) {
@@ -46,5 +51,17 @@ class SeoRedirectMiddleware
         }
 
         return $next($request);
+    }
+
+    private function normalizeSource(string $source): string
+    {
+        $source = trim($source);
+        $path = parse_url($source, PHP_URL_PATH);
+
+        if ($path && parse_url($source, PHP_URL_SCHEME)) {
+            return '/' . trim($path, '/');
+        }
+
+        return '/' . trim($source, '/');
     }
 }

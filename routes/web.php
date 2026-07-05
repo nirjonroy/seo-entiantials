@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Nirjon\LaravelSeo\Http\Controllers\GeneratedPageController;
 use Nirjon\LaravelSeo\Http\Controllers\PageGeneratorController;
+use Nirjon\LaravelSeo\Http\Controllers\SeoRedirectController;
 use Nirjon\LaravelSeo\Http\Controllers\SeoSettingsController;
 use Nirjon\LaravelSeo\Http\Middleware\EnsureSeoAdminAuthenticated;
 
@@ -20,6 +21,14 @@ Route::middleware($adminMiddleware)->prefix('admin/seo-admin')->group(function (
 
     Route::get('settings', [SeoSettingsController::class, 'index'])->name('seo.settings');
     Route::post('settings', [SeoSettingsController::class, 'update'])->name('seo.settings.update');
+
+    Route::get('redirects', [SeoRedirectController::class, 'index'])->name('seo.redirects');
+    Route::get('redirects/create', [SeoRedirectController::class, 'create'])->name('seo.redirects.create');
+    Route::post('redirects', [SeoRedirectController::class, 'store'])->name('seo.redirects.store');
+    Route::get('redirects/{redirect}/edit', [SeoRedirectController::class, 'edit'])->name('seo.redirects.edit');
+    Route::put('redirects/{redirect}', [SeoRedirectController::class, 'update'])->name('seo.redirects.update');
+    Route::patch('redirects/{redirect}/status', [SeoRedirectController::class, 'status'])->name('seo.redirects.status');
+    Route::delete('redirects/{redirect}', [SeoRedirectController::class, 'destroy'])->name('seo.redirects.destroy');
 });
 
 Route::middleware(['web'])->get('seo-media/{path}', [GeneratedPageController::class, 'media'])
