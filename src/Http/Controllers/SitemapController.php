@@ -21,8 +21,7 @@ class SitemapController extends Controller
             abort(404);
         }
 
-        return response()->stream(function () use ($sitemapService, $requestedFile) {
-            $sitemapService->streamXml($requestedFile);
-        }, 200, ['Content-Type' => 'text/xml; charset=UTF-8']);
+        return response($sitemapService->generateXml($requestedFile), 200)
+            ->header('Content-Type', 'text/xml; charset=UTF-8');
     }
 }
