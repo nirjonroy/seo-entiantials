@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Nirjon\LaravelSeo\Http\Controllers\GeneratedPageController;
 use Nirjon\LaravelSeo\Http\Controllers\PageGeneratorController;
+use Nirjon\LaravelSeo\Http\Controllers\SeoMetaController;
 use Nirjon\LaravelSeo\Http\Controllers\SeoRedirectController;
 use Nirjon\LaravelSeo\Http\Controllers\SeoSettingsController;
 use Nirjon\LaravelSeo\Http\Middleware\EnsureSeoAdminAuthenticated;
@@ -21,6 +22,14 @@ Route::middleware($adminMiddleware)->prefix('admin/seo-admin')->group(function (
 
     Route::get('settings', [SeoSettingsController::class, 'index'])->name('seo.settings');
     Route::post('settings', [SeoSettingsController::class, 'update'])->name('seo.settings.update');
+
+    Route::get('meta-tags', [SeoMetaController::class, 'index'])->name('seo.meta');
+    Route::get('meta-tags/create', [SeoMetaController::class, 'create'])->name('seo.meta.create');
+    Route::post('meta-tags', [SeoMetaController::class, 'store'])->name('seo.meta.store');
+    Route::get('meta-tags/{meta}/edit', [SeoMetaController::class, 'edit'])->name('seo.meta.edit');
+    Route::put('meta-tags/{meta}', [SeoMetaController::class, 'update'])->name('seo.meta.update');
+    Route::patch('meta-tags/{meta}/status', [SeoMetaController::class, 'status'])->name('seo.meta.status');
+    Route::delete('meta-tags/{meta}', [SeoMetaController::class, 'destroy'])->name('seo.meta.destroy');
 
     Route::get('redirects', [SeoRedirectController::class, 'index'])->name('seo.redirects');
     Route::get('redirects/create', [SeoRedirectController::class, 'create'])->name('seo.redirects.create');

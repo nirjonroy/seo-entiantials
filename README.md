@@ -188,6 +188,14 @@ Place the component inside the document `<head>`:
 <x-seo::tags />
 ```
 
+Admins can manage URL-level meta tags from:
+
+```text
+/admin/seo-admin/meta-tags
+```
+
+The Meta Tags screen stores metadata against public URL paths such as `/about-us`, `/blog`, or `/services/computer`. When `<x-seo::tags />` is present in the host layout, the component automatically checks the current request path and uses the saved title, description, keywords, canonical URL, robots tag, Open Graph fields, Twitter fields, author, publisher, copyright, and site name. Explicit values passed to the component still take priority.
+
 Manual values:
 
 ```blade

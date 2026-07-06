@@ -2,8 +2,10 @@
 
 namespace Nirjon\LaravelSeo\View\Components;
 
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Nirjon\LaravelSeo\Models\SeoMeta;
 use Illuminate\View\Component;
-use Nirjon\LaravelSeo\Services\SEOMetaService;
 
 class SeoTags extends Component
 {
@@ -34,6 +36,9 @@ class SeoTags extends Component
     public $copyright;
     public $siteName;
     public $robots;
+    public $twitterTitle;
+    public $twitterDescription;
+    public $twitterImage;
     public $pageSchema;
 
     /**
@@ -49,7 +54,7 @@ class SeoTags extends Component
      * @param string|null $image
      * @return void
      */
-    public function __construct($model = null, $title = null, $description = null, $keywords = null, $canonical = null, $ogTitle = null, $ogDescription = null, $image = null, $author = null, $publisher = null, $copyright = null, $siteName = null, $robots = null)
+    public function __construct($model = null, $title = null, $description = null, $keywords = null, $canonical = null, $ogTitle = null, $ogDescription = null, $image = null, $author = null, $publisher = null, $copyright = null, $siteName = null, $robots = null, $twitterTitle = null, $twitterDescription = null, $twitterImage = null)
     {
         $this->model = $model;
         $this->title = $title;
@@ -64,7 +69,62 @@ class SeoTags extends Component
         $this->copyright = $copyright;
         $this->siteName = $siteName;
         $this->robots = $robots;
-        $this->pageSchema = ['@context' => 'https://schema.org', '@type' => 'WebPage', 'name' => $title, 'description' => $description, 'image' => $image, 'url' => $canonical];
+        $this->twitterTitle = $twitterTitle;
+        $this->twitterDescription = $twitterDescription;
+        $this->twitterImage = $twitterImage;
+        $this->applyDynamicMeta();
+        $this->pageSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => $this->title,
+            'description' => $this->description,
+            'image' => $this->image,
+            'url' => $this->canonical ?: url()->current(),
+        ];
+    }
+
+    private function applyDynamicMeta(): void
+    {
+        if (! config('seo.modules.meta', true) || ! Schema::hasTable('nirjon_seo_metas') || ! Schema::hasColumn('nirjon_seo_metas', 'url_path')) {
+            return;
+        }
+
+        $meta = SeoMeta::query()
+            ->where('seoable_type', 'url')
+            ->where('is_active', true)
+            ->where('url_path', $this->currentPath())
+            ->latest('id')
+            ->first();
+
+        if (! $meta) {
+            return;
+        }
+
+        $this->title = $this->title ?: $meta->title;
+        $this->description = $this->description ?: $meta->description;
+        $this->keywords = $this->keywords ?: $meta->keywords;
+        $this->canonical = $this->canonical ?: $meta->canonical_url;
+        $this->ogTitle = $this->ogTitle ?: ($meta->og_title ?: $meta->title);
+        $this->ogDescription = $this->ogDescription ?: ($meta->og_description ?: $meta->description);
+        $this->image = $this->image ?: ($meta->og_image ?: $meta->twitter_image);
+        $this->author = $this->author ?: $meta->author;
+        $this->publisher = $this->publisher ?: $meta->publisher;
+        $this->copyright = $this->copyright ?: $meta->copyright;
+        $this->siteName = $this->siteName ?: $meta->site_name;
+        $this->robots = $this->robots ?: $meta->robots_tag;
+        $this->twitterTitle = $this->twitterTitle ?: ($meta->twitter_title ?: $this->ogTitle);
+        $this->twitterDescription = $this->twitterDescription ?: ($meta->twitter_description ?: $this->ogDescription);
+        $this->twitterImage = $this->twitterImage ?: ($meta->twitter_image ?: $this->image);
+    }
+
+    private function currentPath(): string
+    {
+        $path = '/' . ltrim(request()->path(), '/');
+        $path = $path === '//' ? '/' : $path;
+
+        $path = $path === '/.' ? '/' : (rtrim($path, '/') ?: '/');
+
+        return Str::limit($path, 2048, '');
     }
 
     /**

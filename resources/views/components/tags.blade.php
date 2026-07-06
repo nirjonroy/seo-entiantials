@@ -45,8 +45,9 @@
 <meta property="og:site_name" content="{{ $siteName }}">
 <meta property="og:image" content="{{ $image ?: config('seo.defaults.default_image') }}">
 
-<meta name="twitter:title" content="{{ $ogTitle ?: $title }}">
-<meta name="twitter:description" content="{{ $ogDescription ?: $description }}">
+<meta name="twitter:title" content="{{ $twitterTitle ?: ($ogTitle ?: $title) }}">
+<meta name="twitter:description" content="{{ $twitterDescription ?: ($ogDescription ?: $description) }}">
+<meta name="twitter:image" content="{{ $twitterImage ?: ($image ?: config('seo.defaults.default_image')) }}">
 
 @if($prevUrl) <link rel="prev" href="{{ $prevUrl }}"> @endif
 @if($nextUrl) <link rel="next" href="{{ $nextUrl }}"> @endif
