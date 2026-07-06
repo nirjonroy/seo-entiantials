@@ -27,9 +27,8 @@ class GeneratedPageFallbackMiddleware
 
         if ($this->isSitemapRequest($slug)) {
             try {
-                return response()->stream(function () use ($slug) {
-                    app(SitemapService::class)->streamXml($slug);
-                }, 200, ['Content-Type' => 'text/xml; charset=UTF-8']);
+                return response(app(SitemapService::class)->generateXml($slug), 200)
+                    ->header('Content-Type', 'text/xml; charset=UTF-8');
             } catch (\Throwable $exception) {
                 return $response;
             }
