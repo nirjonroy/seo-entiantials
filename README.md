@@ -86,7 +86,7 @@ Add this full `repositories` block to the host application's root `composer.json
             "source": {
                 "url": "https://github.com/nirjonroy/seo-entiantials.git",
                 "type": "git",
-                "reference": "package-release"
+                "reference": "61ccc89"
             },
             "require": {
                 "php": "^8.0",
@@ -129,7 +129,7 @@ php artisan storage:link
 php artisan optimize:clear
 ```
 
-When the `package-release` branch receives a new fix, run the update commands below. If Composer keeps installing an old cached copy, replace `reference` with the latest commit hash from GitHub, then run the commands again.
+When the `package-release` branch receives a new package-code fix, update `reference` to the latest commit hash from GitHub, then run the update commands below. The example above currently uses `61ccc89`, which includes the meta tag image upload update.
 
 ```bash
 composer clear-cache
