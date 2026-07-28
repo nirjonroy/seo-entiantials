@@ -75,6 +75,12 @@ class GeneratedPageFallbackMiddleware
             return false;
         }
 
-        return app(SitemapService::class)->canServe($slug);
+        $sitemapService = app(SitemapService::class);
+
+        if (method_exists($sitemapService, 'canServe')) {
+            return $sitemapService->canServe($slug);
+        }
+
+        return $slug === 'sitemap.xml';
     }
 }

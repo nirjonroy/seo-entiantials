@@ -15,9 +15,9 @@ class SitemapController extends Controller
     public function index(?string $sitemapFile = 'sitemap.xml')
     {
         $sitemapService = app(SitemapService::class);
-        $requestedFile = $sitemapFile ?: $sitemapService->baseFilename();
+        $requestedFile = $sitemapFile ?: (method_exists($sitemapService, 'baseFilename') ? $sitemapService->baseFilename() : 'sitemap.xml');
 
-        if (! $sitemapService->canServe($requestedFile)) {
+        if (method_exists($sitemapService, 'canServe') && ! $sitemapService->canServe($requestedFile)) {
             abort(404);
         }
 
