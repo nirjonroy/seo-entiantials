@@ -86,7 +86,7 @@ Add this full `repositories` block to the host application's root `composer.json
             "source": {
                 "url": "https://github.com/nirjonroy/seo-entiantials.git",
                 "type": "git",
-                "reference": "ee79fb1"
+                "reference": "package-release"
             },
             "require": {
                 "php": "^8.0",
@@ -129,7 +129,7 @@ php artisan storage:link
 php artisan optimize:clear
 ```
 
-When the `package-release` branch receives a new fix, update the `reference` value in the package repository block to the latest commit hash from GitHub, then run:
+When the `package-release` branch receives a new fix, run the update commands below. If Composer keeps installing an old cached copy, replace `reference` with the latest commit hash from GitHub, then run the commands again.
 
 ```bash
 composer clear-cache
