@@ -36,14 +36,20 @@ composer require nirjon/laravel-seo
 
 ### Install From GitHub Branch
 
-If the package is not published on Packagist yet, add the GitHub repository to the host application's root `composer.json`:
+Production package work is maintained on the `package-release` branch:
+
+```text
+https://github.com/nirjonroy/seo-entiantials/tree/package-release
+```
+
+If Composer can read the GitHub branch as a VCS repository, add this to the host application's root `composer.json`:
 
 ```json
 {
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/nirjonroy/seo-entiantials"
+            "url": "https://github.com/nirjonroy/seo-entiantials.git"
         }
     ],
     "require": {
@@ -55,10 +61,83 @@ If the package is not published on Packagist yet, add the GitHub repository to t
 Then install or update the dependency:
 
 ```bash
-composer update nirjon/laravel-seo
+composer clear-cache
+composer require nirjon/laravel-seo:dev-package-release -W
+php artisan seo:install
+php artisan vendor:publish --tag=seo-views --force
+php artisan optimize:clear
 ```
 
 The GitHub branch URL `https://github.com/nirjonroy/seo-entiantials/tree/package-release` is usable as a source branch because the branch contains the package `composer.json` at the repository root. In Composer, require the branch as `dev-package-release`; do not put `/tree/package-release` in the repository URL.
+
+### Guaranteed GitHub Branch Install
+
+If Composer says `nirjon/laravel-seo could not be found in any version`, use the explicit package repository method below. This is useful on cPanel/shared hosting when the package is not available on Packagist.
+
+Add this full `repositories` block to the host application's root `composer.json`:
+
+```json
+"repositories": [
+    {
+        "type": "package",
+        "package": {
+            "name": "nirjon/laravel-seo",
+            "version": "dev-package-release",
+            "source": {
+                "url": "https://github.com/nirjonroy/seo-entiantials.git",
+                "type": "git",
+                "reference": "ee79fb1"
+            },
+            "require": {
+                "php": "^8.0",
+                "illuminate/support": "^9.0|^10.0|^11.0"
+            },
+            "autoload": {
+                "psr-4": {
+                    "Nirjon\\LaravelSeo\\": "src/"
+                }
+            },
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Nirjon\\LaravelSeo\\SEOServiceProvider"
+                    ]
+                }
+            }
+        }
+    }
+]
+```
+
+Then add the package requirement:
+
+```json
+"require": {
+    "nirjon/laravel-seo": "dev-package-release"
+}
+```
+
+For a first install, run:
+
+```bash
+composer clear-cache
+composer update nirjon/laravel-seo -W
+php artisan seo:install
+php artisan vendor:publish --tag=seo-views --force
+php artisan migrate --force
+php artisan storage:link
+php artisan optimize:clear
+```
+
+When the `package-release` branch receives a new fix, update the `reference` value in the package repository block to the latest commit hash from GitHub, then run:
+
+```bash
+composer clear-cache
+composer update nirjon/laravel-seo -W
+php artisan vendor:publish --tag=seo-views --force
+php artisan migrate --force
+php artisan optimize:clear
+```
 
 For production, the better solution is to create a tagged release such as `v1.0.0` and require it with a stable constraint:
 
@@ -296,6 +375,25 @@ Then the dynamic XML sitemap is available at:
 
 The default `/sitemap.xml` endpoint remains available for compatibility. The settings panel shows the current sitemap URL and the PageForge generated pages included in the XML output.
 
+Dynamic sitemap options include:
+
+- custom sitemap index filename, for example `seo-essentials.xml` or `repair-services-sitemap.xml`
+- URL count per child sitemap file
+- child sitemap filename pattern using `{base}` and `{page}`, for example `{base}-{page}.xml`
+- PageForge generated page preview count inside the settings screen
+
+When generated page URLs exceed the configured limit, the package creates a sitemap index and numbered child sitemap URLs automatically:
+
+```text
+/repair-services-sitemap.xml
+/repair-services-sitemap-1.xml
+/repair-services-sitemap-2.xml
+```
+
+PageForge generated pages are included in these XML files with priority `1.0`.
+
+If a host project has middleware that calls `$response->header()`, update to the latest package release. Sitemap responses are returned as normal Laravel responses, including child sitemap files, so they do not break CORS or custom response middleware.
+
 ## PageForge Bulk Page Generator
 
 Open:
@@ -400,6 +498,28 @@ php artisan migrate
 php artisan storage:link
 php artisan optimize:clear
 composer dump-autoload
+```
+
+## Verify Installed Package Version
+
+After updating on a server, check that the installed vendor copy contains the latest sitemap compatibility code:
+
+```bash
+grep -n "function canServe" vendor/nirjon/laravel-seo/src/Services/SitemapService.php
+grep -n "response()->stream" vendor/nirjon/laravel-seo/src/Http/Middleware/GeneratedPageFallbackMiddleware.php
+grep -n "generateXml" vendor/nirjon/laravel-seo/src/Http/Middleware/GeneratedPageFallbackMiddleware.php
+```
+
+Expected result:
+
+- `function canServe` is found in `SitemapService.php`
+- `response()->stream` returns no lines
+- `generateXml` is found in `GeneratedPageFallbackMiddleware.php`
+
+Then clear caches:
+
+```bash
+php artisan optimize:clear
 ```
 
 ## Troubleshooting
