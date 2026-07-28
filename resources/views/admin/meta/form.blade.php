@@ -27,7 +27,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ $action }}" class="rounded-lg border border-slate-200 bg-white px-6 py-6 shadow-sm">
+            <form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="rounded-lg border border-slate-200 bg-white px-6 py-6 shadow-sm">
                 @csrf
                 @if($method !== 'POST')
                     @method($method)
@@ -97,8 +97,17 @@
                                 <input id="og_title" name="og_title" type="text" value="{{ old('og_title', $meta->og_title) }}" class="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                             <div>
-                                <label for="og_image" class="block text-sm font-medium text-slate-700">OG Image URL</label>
-                                <input id="og_image" name="og_image" type="text" value="{{ old('og_image', $meta->og_image) }}" class="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <label for="og_image" class="block text-sm font-medium text-slate-700">OG Image</label>
+                                <input id="og_image" name="og_image" type="file" accept="image/*" class="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @if($meta->og_image)
+                                    <div class="mt-3 flex items-center gap-3 rounded-md border border-slate-200 bg-white p-3">
+                                        <img src="{{ $meta->og_image }}" alt="Current OG image" class="h-16 w-24 rounded object-cover">
+                                        <div class="min-w-0 text-xs text-slate-600">
+                                            <div class="font-medium text-slate-700">Current image</div>
+                                            <div class="truncate">{{ $meta->og_image }}</div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         <div class="mt-4">
@@ -115,8 +124,17 @@
                                 <input id="twitter_title" name="twitter_title" type="text" value="{{ old('twitter_title', $meta->twitter_title) }}" class="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                             <div>
-                                <label for="twitter_image" class="block text-sm font-medium text-slate-700">Twitter Image URL</label>
-                                <input id="twitter_image" name="twitter_image" type="text" value="{{ old('twitter_image', $meta->twitter_image) }}" class="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <label for="twitter_image" class="block text-sm font-medium text-slate-700">Twitter Image</label>
+                                <input id="twitter_image" name="twitter_image" type="file" accept="image/*" class="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                @if($meta->twitter_image)
+                                    <div class="mt-3 flex items-center gap-3 rounded-md border border-slate-200 bg-white p-3">
+                                        <img src="{{ $meta->twitter_image }}" alt="Current Twitter image" class="h-16 w-24 rounded object-cover">
+                                        <div class="min-w-0 text-xs text-slate-600">
+                                            <div class="font-medium text-slate-700">Current image</div>
+                                            <div class="truncate">{{ $meta->twitter_image }}</div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         <div class="mt-4">

@@ -4,6 +4,7 @@ namespace Nirjon\LaravelSeo\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Nirjon\LaravelSeo\Models\SeoMeta;
@@ -44,6 +45,7 @@ class SeoMetaController extends Controller
     {
         $data = $this->validated($request);
         $data['url_path'] = $this->normalizePath($data['url_path']);
+        $data = $this->storeUploadedImages($request, $data);
 
         $this->ensureUniquePath($data['url_path']);
 
@@ -74,6 +76,7 @@ class SeoMetaController extends Controller
 
         $data = $this->validated($request);
         $data['url_path'] = $this->normalizePath($data['url_path']);
+        $data = $this->storeUploadedImages($request, $data, $meta);
 
         $this->ensureUniquePath($data['url_path'], $meta->id);
 
@@ -117,12 +120,46 @@ class SeoMetaController extends Controller
             'canonical_url' => ['nullable', 'string', 'max:2048'],
             'og_title' => ['nullable', 'string', 'max:255'],
             'og_description' => ['nullable', 'string'],
-            'og_image' => ['nullable', 'string', 'max:2048'],
+            'og_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
             'twitter_title' => ['nullable', 'string', 'max:255'],
             'twitter_description' => ['nullable', 'string'],
-            'twitter_image' => ['nullable', 'string', 'max:2048'],
+            'twitter_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+    }
+
+    private function storeUploadedImages(Request $request, array $data, ?SeoMeta $meta = null): array
+    {
+        foreach (['og_image', 'twitter_image'] as $field) {
+            if (! $request->hasFile($field)) {
+                unset($data[$field]);
+                continue;
+            }
+
+            if ($meta && $meta->{$field}) {
+                $this->deleteStoredImage($meta->{$field});
+            }
+
+            $path = $request->file($field)->store('seo-meta-images', 'public');
+            $data[$field] = Storage::disk('public')->url($path);
+        }
+
+        return $data;
+    }
+
+    private function deleteStoredImage(string $url): void
+    {
+        $storagePrefix = '/storage/';
+
+        if (! str_contains($url, $storagePrefix)) {
+            return;
+        }
+
+        $path = Str::after($url, $storagePrefix);
+
+        if (str_starts_with($path, 'seo-meta-images/')) {
+            Storage::disk('public')->delete($path);
+        }
     }
 
     private function normalizePath(string $path): string
