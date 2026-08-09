@@ -4,11 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php
+        $replacePlaceholders = function ($value, array $replacements = []) {
+            $replaceMap = [];
+
+            foreach (array_values($replacements) as $index => $replacement) {
+                $replaceMap['{' . $index . '}'] = (string) $replacement;
+            }
+
+            return strtr((string) $value, $replaceMap);
+        };
+
         $parseSpintax = function ($value) {
             $value = html_entity_decode((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-            while (preg_match('/\{([^{}]+)\}/', $value)) {
-                $value = preg_replace_callback('/\{([^{}]+)\}/', function ($matches) {
+            while (preg_match('/\{([^{}]*\|[^{}]*)\}/', $value)) {
+                $value = preg_replace_callback('/\{([^{}]*\|[^{}]*)\}/', function ($matches) {
                     $parts = array_values(array_filter(array_map('trim', explode('|', $matches[1])), 'strlen'));
 
                     return $parts[0] ?? '';
@@ -19,11 +29,15 @@
         };
 
         $template = $page->template;
-        $title = $parseSpintax($page->final_title);
-        $content = $parseSpintax($page->final_content);
-        $metaTitle = $parseSpintax($page->meta_title ?: $title);
-        $metaDescription = $parseSpintax($page->meta_description);
-        $metaKeywords = $parseSpintax($page->meta_keywords);
+        $replacements = is_array($page->replacement_values ?? null) ? $page->replacement_values : [];
+        $title = $parseSpintax($replacePlaceholders($page->final_title, $replacements));
+        $content = $parseSpintax($replacePlaceholders($page->final_content, $replacements));
+        $metaTitle = $parseSpintax($replacePlaceholders($page->meta_title ?: $title, $replacements));
+        $metaDescription = $parseSpintax($replacePlaceholders($page->meta_description, $replacements));
+        $metaKeywords = $parseSpintax($replacePlaceholders($page->meta_keywords, $replacements));
+        $customCss = $parseSpintax($replacePlaceholders(optional($template)->custom_css, $replacements));
+        $headerCss = $parseSpintax($replacePlaceholders(optional($template)->header_css, $replacements));
+        $headerJs = $parseSpintax($replacePlaceholders(optional($template)->header_js, $replacements));
         $mediaUrl = function ($path) {
             $path = (string) $path;
 
@@ -232,15 +246,15 @@
             .pf-related-head { align-items: flex-start; flex-direction: column; }
             .pf-related-grid { grid-template-columns: 1fr; }
         }
-        {!! optional($template)->custom_css !!}
+        {!! $customCss !!}
     </style>
-    @if(optional($template)->header_css)
+    @if($headerCss)
         <style id="pageforge-header-css">
-            {!! optional($template)->header_css !!}
+            {!! $headerCss !!}
         </style>
     @endif
-    @if(optional($template)->header_js)
-        {!! optional($template)->header_js !!}
+    @if($headerJs)
+        {!! $headerJs !!}
     @endif
 </head>
 <body>

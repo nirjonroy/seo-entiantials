@@ -5,6 +5,7 @@ namespace Nirjon\LaravelSeo\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Nirjon\LaravelSeo\Models\SeoGeneratedPage;
 use Nirjon\LaravelSeo\Models\SeoKeyword;
@@ -131,25 +132,31 @@ class PageGeneratorController extends Controller
                 foreach ($bundle2Values as $keyword2) {
                     $replacements = [$keyword1, $keyword2];
 
-                    $slug = $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateSlug));
+                    $slug = $this->parseSpintax($this->replacePlaceholders($templateSlug, $replacements));
                     $urlSlug = Str::slug($slug);
 
                     if (empty($urlSlug)) {
                         continue;
                     }
 
-                    SeoGeneratedPage::create([
+                    $pageData = [
                         'template_id' => $template->id,
                         'url_slug' => $this->uniqueGeneratedSlug($urlSlug),
-                        'final_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateTitle)),
+                        'final_title' => $this->parseSpintax($this->replacePlaceholders($templateTitle, $replacements)),
                         'final_content' => $this->normalizeGeneratedContent(
-                            $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateContent))
+                            $this->parseSpintax($this->replacePlaceholders($templateContent, $replacements))
                         ),
-                        'meta_title' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaTitle)),
-                        'meta_description' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaDescription)),
-                        'meta_keywords' => $this->parseSpintax(str_replace(['{0}', '{1}'], $replacements, $templateMetaKeywords)),
+                        'meta_title' => $this->parseSpintax($this->replacePlaceholders($templateMetaTitle, $replacements)),
+                        'meta_description' => $this->parseSpintax($this->replacePlaceholders($templateMetaDescription, $replacements)),
+                        'meta_keywords' => $this->parseSpintax($this->replacePlaceholders($templateMetaKeywords, $replacements)),
                         'featured_image' => $metaImage,
-                    ]);
+                    ];
+
+                    if (Schema::hasColumn('nirjon_seo_generated_pages', 'replacement_values')) {
+                        $pageData['replacement_values'] = $replacements;
+                    }
+
+                    SeoGeneratedPage::create($pageData);
 
                     $generatedCount++;
                 }
@@ -228,14 +235,30 @@ class PageGeneratorController extends Controller
 
     private function parseSpintax(string $text): string
     {
-        return preg_replace_callback(
-            '/\{(((?>[^\{\}]+)|(?R))*)\}/x',
-            function ($matches) {
-                $parts = explode('|', $matches[1]);
-                return $parts[array_rand($parts)];
-            },
-            $text
-        );
+        while (preg_match('/\{([^{}]*\|[^{}]*)\}/', $text)) {
+            $text = preg_replace_callback(
+                '/\{([^{}]*\|[^{}]*)\}/',
+                function ($matches) {
+                    $parts = array_values(array_filter(array_map('trim', explode('|', $matches[1])), 'strlen'));
+
+                    return $parts[array_rand($parts)] ?? '';
+                },
+                $text
+            );
+        }
+
+        return $text;
+    }
+
+    private function replacePlaceholders(string $text, array $replacements): string
+    {
+        $replaceMap = [];
+
+        foreach (array_values($replacements) as $index => $replacement) {
+            $replaceMap['{' . $index . '}'] = (string) $replacement;
+        }
+
+        return strtr($text, $replaceMap);
     }
 
     private function normalizeGeneratedContent(string $content): string

@@ -826,9 +826,23 @@
                         plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table wordcount help emoticons codesample',
                         toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table blockquote codesample | removeformat code fullscreen preview',
                         toolbar_mode: 'sliding',
+                        verify_html: false,
+                        cleanup: false,
+                        allow_script_urls: true,
+                        convert_urls: false,
+                        relative_urls: false,
+                        remove_script_host: false,
+                        entity_encoding: 'raw',
+                        valid_elements: '*[*]',
+                        extended_valid_elements: 'script[async|defer|charset|crossorigin|integrity|language|referrerpolicy|src|type],style[media|type],iframe[allow|allowfullscreen|frameborder|height|loading|referrerpolicy|src|title|width]',
+                        valid_children: '+body[script|style|iframe],+div[script|style|iframe],+section[script|style|iframe],+article[script|style|iframe],+p[script|style|iframe]',
+                        protect: [
+                            /<script[\s\S]*?<\/script>/gi,
+                            /<style[\s\S]*?<\/style>/gi
+                        ],
                         setup: function (tinyEditor) {
                             editor = tinyEditor;
-                            tinyEditor.on('change keyup', function () {
+                            tinyEditor.on('change keyup undo redo input', function () {
                                 tinyEditor.save();
                             });
                         }

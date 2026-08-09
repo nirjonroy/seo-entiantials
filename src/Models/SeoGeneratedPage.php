@@ -10,6 +10,10 @@ class SeoGeneratedPage extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'replacement_values' => 'array',
+    ];
+
     public function template()
     {
         return $this->belongsTo(SeoTemplate::class, 'template_id');
