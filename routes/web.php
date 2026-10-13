@@ -32,6 +32,8 @@ Route::middleware($adminMiddleware)->prefix('admin/seo-admin')->group(function (
     Route::delete('meta-tags/{meta}', [SeoMetaController::class, 'destroy'])->name('seo.meta.destroy');
 
     Route::get('redirects', [SeoRedirectController::class, 'index'])->name('seo.redirects');
+    Route::get('redirects/export', [SeoRedirectController::class, 'export'])->name('seo.redirects.export');
+    Route::post('redirects/import', [SeoRedirectController::class, 'import'])->name('seo.redirects.import');
     Route::get('redirects/create', [SeoRedirectController::class, 'create'])->name('seo.redirects.create');
     Route::post('redirects', [SeoRedirectController::class, 'store'])->name('seo.redirects.store');
     Route::get('redirects/{redirect}/edit', [SeoRedirectController::class, 'edit'])->name('seo.redirects.edit');

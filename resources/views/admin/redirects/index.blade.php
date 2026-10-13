@@ -13,8 +13,16 @@
                     <p class="mt-1 text-sm text-slate-600">Create and manage SEO redirects from the package dashboard.</p>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <a href="{{ route('seo.settings') }}" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">SEO Settings</a>
+                    <a href="{{ route('seo.redirects.export') }}" class="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100">Export CSV</a>
+                    <form method="POST" action="{{ route('seo.redirects.import') }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
+                        @csrf
+                        <label class="cursor-pointer rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                            Import CSV
+                            <input type="file" name="redirect_file" accept=".csv,text/csv,text/plain" class="sr-only" onchange="this.form.submit()">
+                        </label>
+                    </form>
                     <a href="{{ route('seo.redirects.create') }}" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Add Redirect</a>
                 </div>
             </div>
@@ -22,6 +30,12 @@
             @if(session('status'))
                 <div class="mb-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
                     {{ session('status') }}
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+                    {{ $errors->first() }}
                 </div>
             @endif
 

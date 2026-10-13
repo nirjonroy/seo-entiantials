@@ -4,6 +4,7 @@ namespace Nirjon\LaravelSeo\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Arr;
 use Nirjon\LaravelSeo\Models\SeoRedirect;
 
 class SeoRedirectController extends Controller
@@ -94,6 +95,109 @@ class SeoRedirectController extends Controller
         return redirect()->route('seo.redirects')->with('status', 'Redirect deleted successfully.');
     }
 
+    public function export()
+    {
+        $handle = fopen('php://temp', 'r+');
+
+        fputcsv($handle, [
+            'source_url',
+            'destination_url',
+            'redirect_type',
+            'match_type',
+            'ignore_case',
+            'is_active',
+        ]);
+
+        SeoRedirect::query()
+            ->orderBy('id')
+            ->each(function (SeoRedirect $redirect) use ($handle) {
+                fputcsv($handle, [
+                    $redirect->source_url,
+                    $redirect->destination_url,
+                    $redirect->redirect_type,
+                    $redirect->match_type,
+                    $redirect->ignore_case ? 1 : 0,
+                    $redirect->is_active ? 1 : 0,
+                ]);
+            });
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="seo-redirects-' . now()->format('Y-m-d-His') . '.csv"',
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'redirect_file' => ['required', 'file', 'mimes:csv,txt', 'max:20480'],
+        ]);
+
+        $handle = fopen($request->file('redirect_file')->getRealPath(), 'r');
+
+        if ($handle === false) {
+            return back()->with('status', 'Could not read the uploaded redirect CSV file.');
+        }
+
+        $headers = $this->normalizeCsvHeaders(fgetcsv($handle) ?: []);
+
+        if (! in_array('source_url', $headers, true) || ! in_array('destination_url', $headers, true)) {
+            fclose($handle);
+
+            return back()->with('status', 'Import failed. CSV must include source_url and destination_url columns.');
+        }
+
+        $created = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $row = array_pad($row, count($headers), null);
+            $data = array_combine($headers, array_slice($row, 0, count($headers)));
+            $sourceUrl = trim((string) Arr::get($data, 'source_url', ''));
+
+            if ($sourceUrl === '') {
+                $skipped++;
+                continue;
+            }
+
+            $redirectType = (int) (Arr::get($data, 'redirect_type') ?: 301);
+            $matchType = (string) (Arr::get($data, 'match_type') ?: 'exact');
+
+            if (! isset($this->redirectTypes[$redirectType]) || ! isset($this->matchTypes[$matchType])) {
+                $skipped++;
+                continue;
+            }
+
+            $payload = [
+                'destination_url' => trim((string) Arr::get($data, 'destination_url', '')) ?: null,
+                'redirect_type' => $redirectType,
+                'match_type' => $matchType,
+                'ignore_case' => $this->csvBoolean(Arr::get($data, 'ignore_case'), true),
+                'is_active' => $this->csvBoolean(Arr::get($data, 'is_active'), true),
+            ];
+
+            if (in_array($redirectType, [410, 451], true)) {
+                $payload['destination_url'] = null;
+            }
+
+            $redirect = SeoRedirect::query()->firstOrNew(['source_url' => $sourceUrl]);
+            $redirect->fill($payload);
+            $redirect->exists ? $updated++ : $created++;
+            $redirect->save();
+        }
+
+        fclose($handle);
+
+        return redirect()
+            ->route('seo.redirects')
+            ->with('status', "Redirect import complete. Created: {$created}. Updated: {$updated}. Skipped: {$skipped}.");
+    }
+
     public function status(SeoRedirect $redirect)
     {
         $redirect->update(['is_active' => ! $redirect->is_active]);
@@ -120,5 +224,25 @@ class SeoRedirectController extends Controller
         }
 
         return $data;
+    }
+
+    private function normalizeCsvHeaders(array $headers): array
+    {
+        return array_map(function ($header) {
+            $header = strtolower(trim((string) $header));
+            $header = ltrim($header, "\xEF\xBB\xBF");
+            $header = str_replace([' ', '-'], '_', $header);
+
+            return preg_replace('/[^a-z0-9_]/', '', $header) ?: '';
+        }, $headers);
+    }
+
+    private function csvBoolean($value, bool $default): bool
+    {
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'on', 'active'], true);
     }
 }
