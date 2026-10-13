@@ -8,7 +8,7 @@ A modular Laravel SEO package for meta tags, Open Graph, schema, sitemaps, redir
 - WebSite, Organization, WebPage, model, and LocalBusiness JSON-LD schema.
 - XML sitemap at `/sitemap.xml` and Blade-rendered HTML sitemap support.
 - Static SEO files for `/robots.txt`, `/llms.txt`, and `/.well-known/security.txt`.
-- Redirect manager support for 301, 302, 410, and 451 responses.
+- Redirect manager support for 301, 302, 410, and 451 responses, with CSV import/export.
 - 404 monitor storage for broken URL tracking.
 - Automatic image SEO attributes and external link controls.
 - Breadcrumb service and Blade component.
@@ -86,7 +86,7 @@ Add this full `repositories` block to the host application's root `composer.json
             "source": {
                 "url": "https://github.com/nirjonroy/seo-entiantials.git",
                 "type": "git",
-                "reference": "61ccc89"
+                "reference": "8e2fbca"
             },
             "require": {
                 "php": "^8.0",
@@ -129,7 +129,7 @@ php artisan storage:link
 php artisan optimize:clear
 ```
 
-When the `package-release` branch receives a new package-code fix, update `reference` to the latest commit hash from GitHub, then run the update commands below. The example above currently uses `61ccc89`, which includes the meta tag image upload update.
+When the `package-release` branch receives a new package-code fix, update `reference` to the latest commit hash from GitHub, then run the update commands below. The example above currently uses `8e2fbca`, which includes redirect CSV import/export.
 
 ```bash
 composer clear-cache
@@ -175,6 +175,28 @@ composer dump-autoload
 | `/admin/seo-admin/settings` | SEO module settings UI |
 | `/admin/seo-admin/generator` | PageForge bulk page generator |
 | `/{slug}` | Public generated SEO landing page |
+
+## Redirect Import And Export
+
+The redirect manager is available from:
+
+```text
+/admin/seo-admin/redirects
+```
+
+Use **Export CSV** to download all redirects. Use **Import CSV** to create or update redirects in bulk. Import never deletes old redirects; existing rows are matched and updated by `source_url`.
+
+CSV headers:
+
+```csv
+source_url,destination_url,redirect_type,match_type,ignore_case,is_active
+```
+
+Allowed values:
+
+- `redirect_type`: `301`, `302`, `307`, `410`, or `451`
+- `match_type`: `exact`, `starts_with`, or `contains`
+- `ignore_case` and `is_active`: `1`, `0`, `true`, `false`, `yes`, `no`, `active`, or blank
 
 ## Configuration
 
